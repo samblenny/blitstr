@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title></title><style>
+html{-webkit-text-size-adjust:none;font-size:16px;font-family:sans-serif;}
+html,body{min-height:100vh;width:100vw;background:#6A7F77;}
+html,body,div,pre,h1,p,button,label,select,textarea,svg{margin:0;padding:0;box-sizing:border-box;}
+body,div,pre,h1,p,button,select,textarea{font-size:inherit;color:inherit;}
+p{margin:0.3em 10px;}
+header{grid-area:H;color:#ddd;display:flex;align-items:baseline;}
+#screen{grid-area:S;background:#fff;overflow:auto;}
+#controls{grid-area:C;display:block;padding:10px;border:none;}
+body{display:grid;
+ grid:". . . . . ." 20px
+      ". . S . H ." 41px
+      ". . S . C ." auto
+      ". . . . . ." 1fr
+      / minmax(10px,1fr) 72px 336px 72px 480px minmax(10px,1fr);}
+header h1{display:inline-block;font-size:1.5em;margin-left:2px;margin-right:auto;color:#ddd;}
+#controls button{margin:0 13px;padding:4px 8px;border-radius:6px;border:2px solid #999;
+    font-size:15px;color:black;background:#ddd;}
+#controls button.on{background:#96e00e;}
+#controls label{margin:0 4px;}
+#screen{width:336px;height:536px;background:#aabac9;}
+</style></head><body>
+
+<header>
+</header>
+
+<canvas id="screen">
+</canvas>
+
+<div id="controls">
+</div>
+
+<script type="module" src="main.js"></script>
+</body></html>
