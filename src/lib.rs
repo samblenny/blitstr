@@ -49,7 +49,7 @@ impl Cursor {
 /// min and exclusive of max (i.e. it's min.x..max.x rather than min.x..=max.x)
 /// Coordinate System Notes:
 /// - (0,0) is top left
-/// - Increasing Y moves downward on the screen, increasing X moves left
+/// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
 #[derive(Copy, Clone)]
 pub struct Rect {
