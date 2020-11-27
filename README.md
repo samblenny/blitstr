@@ -18,6 +18,13 @@ ruby webserver.rb
 ```
 
 
+## Command Line Demo
+
+You can do `cargo run`, but it just updates a frame buffer without displaying
+the image anywhere. That sounds useless, but it actually helps for debugging
+panics that can easily happen when making changes to the blitting code.
+
+
 ## Notes on Bitmap Fonts
 
 This project uses bitmap fonts in the form of rust source code. The rust fonts in
