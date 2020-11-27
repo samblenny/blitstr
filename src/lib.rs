@@ -176,8 +176,17 @@ fn xor_char(
     if gh.w > 32 {
         return Ok(0);
     }
+    // Don't clip if cursor is left of clip rect; instead, advance the cursor
+    if c.pt.x < clip.min.x {
+        c.pt.x = clip.min.x;
+    }
     // Add 1px pad to left
-    let x0 = c.pt.x + 1;
+    let mut x0 = c.pt.x + 1;
+    // Adjust for word wrapping
+    if x0 + gh.w + 2 >= clip.max.x {
+        newline(clip, c);
+        x0 = c.pt.x + 1;
+    }
     // Calculate word alignment for destination buffer
     let x1 = x0 + gh.w;
     let dest_low_word = x0 >> 5;
@@ -186,15 +195,18 @@ fn xor_char(
     // Blit it
     let y0 = c.pt.y + gh.y_offset;
     if y0 > clip.max.y {
-        // This is outside the bottom of the clip rect
-        return Ok(0);
+        return Ok(0);  // Entire glyph is outside clip rect, so clip it
     }
     let y_max = if (y0 + gh.h) <= clip.max.y {
         gh.h
     } else {
-        clip.max.y - y0
+        clip.max.y - y0  // Clip bottom of glyph
     };
     for y in 0..y_max {
+        // Skip rows that are above the clip region
+        if y0 + y < clip.min.y {
+            continue;  // Clip top of glyph
+        }
         // Unpack pixels for this glyph row.
         // px_in_low_word can include some or all of the pixels for this row of
         // the pattern. It may also include pixels for the next row, or, in the
