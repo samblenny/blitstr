@@ -5,7 +5,7 @@
 #![forbid(unsafe_code)]
 
 pub mod demo;
-mod fonts;
+pub mod fonts;
 use fonts::{Font, GlyphHeader, GlyphSet};
 
 /// Frame buffer bounds
@@ -22,7 +22,7 @@ pub const fn new_fr_buf() -> FrBuf {
 }
 
 /// Point specifies a pixel coordinate
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Pt {
     pub x: usize,
     pub y: usize,
@@ -31,12 +31,19 @@ pub struct Pt {
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Cursor {
     pub pt: Pt,
     pub line_height: usize,
 }
 impl Cursor {
+    pub fn new(x: i16, y: i16, h: u16) -> Cursor {
+        Cursor {
+            pt: Pt { x: x as usize, y: y as usize },
+            line_height: h as usize,
+        }
+    }
+
     pub fn from_top_left_of(r: Rect) -> Cursor {
         Cursor {
             pt: r.min,
@@ -51,7 +58,7 @@ impl Cursor {
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Rect {
     pub min: Pt,
     pub max: Pt,
