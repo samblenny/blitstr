@@ -22,7 +22,7 @@ pub const fn new_fr_buf() -> FrBuf {
 }
 
 /// Point specifies a pixel coordinate
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Pt {
     pub x: usize,
     pub y: usize,
@@ -31,7 +31,7 @@ pub struct Pt {
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Cursor {
     pub pt: Pt,
     pub line_height: usize,
@@ -51,7 +51,7 @@ impl Cursor {
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ClipRect {
     pub min: Pt,
     pub max: Pt,
