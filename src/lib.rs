@@ -92,11 +92,25 @@ impl ClipRect {
 }
 
 /// Style options for Latin script fonts
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Style {
-    Bold,
-    Regular,
-    Small,
+    Small = 0,
+    Regular = 1,
+    Bold = 2,
+}
+
+/// Convert style to number for use with register-based message passing sytems
+pub fn style_to_arg(s: Style) -> usize {
+    s as usize
+}
+
+/// Convert number to style for use with register-based message passing sytems
+pub fn arg_to_style(arg: usize) -> Style {
+    match arg {
+        0 => Style::Small,
+        2 => Style::Bold,
+        _ => Style::Regular,
+    }
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
@@ -326,5 +340,14 @@ mod tests {
         let cr = ClipRect::new(1, 2, 8, 9);
         let c = Cursor::from_top_left_of(cr);
         assert_eq!(c.pt, cr.min);
+    }
+
+    #[test]
+    fn test_style_arg_conversions() {
+        assert_eq!(Style::Small, arg_to_style(style_to_arg(Style::Small)));
+        assert_eq!(Style::Regular, arg_to_style(style_to_arg(Style::Regular)));
+        assert_eq!(Style::Bold, arg_to_style(style_to_arg(Style::Bold)));
+        let bad_arg = 255;
+        assert_eq!(Style::Regular, arg_to_style(bad_arg));
     }
 }
