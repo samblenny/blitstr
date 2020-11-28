@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 #![forbid(unsafe_code)]
-use super::{clear_region, paint_str, Cursor, FrBuf, Rect, Style};
+use super::{clear_region, paint_str, ClipRect, Cursor, FrBuf, Style};
 
 /// Demonstrate available fonts
 pub fn sample_text(fb: &mut FrBuf) {
@@ -16,8 +16,8 @@ pub fn sample_text(fb: &mut FrBuf) {
         "Zwölf Boxkämpfer jagen Viktor quer über den großen Sylter Deich.\n"
     );
 
-    clear_region(fb, Rect::full_screen());
-    let mut clip = Rect::padded_screen();
+    clear_region(fb, ClipRect::full_screen());
+    let mut clip = ClipRect::padded_screen();
     let c = &mut Cursor::from_top_left_of(clip);
     paint_str(fb, clip, c, Style::Bold, note);
     paint_str(fb, clip, c, Style::Regular, note);

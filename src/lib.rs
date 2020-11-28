@@ -37,7 +37,7 @@ pub struct Cursor {
     pub line_height: usize,
 }
 impl Cursor {
-    pub fn from_top_left_of(r: Rect) -> Cursor {
+    pub fn from_top_left_of(r: ClipRect) -> Cursor {
         Cursor {
             pt: r.min,
             line_height: 0,
@@ -45,33 +45,33 @@ impl Cursor {
     }
 }
 
-/// Rect specifies a region of pixels. X and y pixel ranges are inclusive of
+/// ClipRect specifies a region of pixels. X and y pixel ranges are inclusive of
 /// min and exclusive of max (i.e. it's min.x..max.x rather than min.x..=max.x)
 /// Coordinate System Notes:
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
 #[derive(Copy, Clone)]
-pub struct Rect {
+pub struct ClipRect {
     pub min: Pt,
     pub max: Pt,
 }
-impl Rect {
+impl ClipRect {
     /// Initialize a rectangle
-    pub fn new(min_x: usize, min_y: usize, max_x: usize, max_y: usize) -> Rect {
-        Rect {
+    pub fn new(min_x: usize, min_y: usize, max_x: usize, max_y: usize) -> ClipRect {
+        ClipRect {
             min: Pt { x: min_x, y: min_y },
             max: Pt { x: max_x, y: max_y },
         }
     }
     /// Make a rectangle of the full screen size
-    pub fn full_screen() -> Rect {
-        Rect::new(0, 0, WIDTH, LINES)
+    pub fn full_screen() -> ClipRect {
+        ClipRect::new(0, 0, WIDTH, LINES)
     }
     /// Make a rectangle of the screen size minus padding
-    pub fn padded_screen() -> Rect {
+    pub fn padded_screen() -> ClipRect {
         let pad = 6;
-        Rect::new(pad, pad, WIDTH - pad, LINES - pad)
+        ClipRect::new(pad, pad, WIDTH - pad, LINES - pad)
     }
 }
 
@@ -83,7 +83,7 @@ pub enum Style {
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
-pub fn paint_str(fb: &mut FrBuf, clip: Rect, c: &mut Cursor, st: Style, s: &str) {
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: Style, s: &str) {
     // Based on the requested style of Latin text, figure out a priority order
     // of glyph sets to use for looking up grapheme clusters
     let gs1 = GlyphSet::Emoji;
@@ -127,7 +127,7 @@ pub fn paint_str(fb: &mut FrBuf, clip: Rect, c: &mut Cursor, st: Style, s: &str)
 }
 
 /// Advance the cursor to the start of a new line within the clip rect
-fn newline(clip: Rect, c: &mut Cursor) {
+fn newline(clip: ClipRect, c: &mut Cursor) {
     c.pt.x = clip.min.x;
     if c.line_height < fonts::small::MAX_HEIGHT as usize {
         c.line_height = fonts::small::MAX_HEIGHT as usize;
@@ -161,7 +161,7 @@ fn newline(clip: Rect, c: &mut Cursor) {
 ///
 fn xor_char(
     fb: &mut FrBuf,
-    clip: Rect,
+    clip: ClipRect,
     c: &mut Cursor,
     cluster: &str,
     gs: GlyphSet,
@@ -195,17 +195,17 @@ fn xor_char(
     // Blit it
     let y0 = c.pt.y + gh.y_offset;
     if y0 > clip.max.y {
-        return Ok(0);  // Entire glyph is outside clip rect, so clip it
+        return Ok(0); // Entire glyph is outside clip rect, so clip it
     }
     let y_max = if (y0 + gh.h) <= clip.max.y {
         gh.h
     } else {
-        clip.max.y - y0  // Clip bottom of glyph
+        clip.max.y - y0 // Clip bottom of glyph
     };
     for y in 0..y_max {
         // Skip rows that are above the clip region
         if y0 + y < clip.min.y {
-            continue;  // Clip top of glyph
+            continue; // Clip top of glyph
         }
         // Unpack pixels for this glyph row.
         // px_in_low_word can include some or all of the pixels for this row of
@@ -248,7 +248,7 @@ fn xor_char(
 }
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
-pub fn clear_region(fb: &mut FrBuf, clip: Rect) {
+pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
     if clip.max.y > LINES
         || clip.min.y >= clip.max.y
         || clip.max.x > WIDTH
