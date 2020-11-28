@@ -22,7 +22,7 @@ pub const fn new_fr_buf() -> FrBuf {
 }
 
 /// Point specifies a pixel coordinate
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Pt {
     pub x: usize,
     pub y: usize,
@@ -31,12 +31,20 @@ pub struct Pt {
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Cursor {
     pub pt: Pt,
     pub line_height: usize,
 }
 impl Cursor {
+    // Make a new Cursor. When in doubt, set line_height = 0.
+    pub fn new(x: usize, y: usize, line_height: usize) -> Cursor {
+        Cursor {
+            pt: Pt { x, y },
+            line_height,
+        }
+    }
+    // Make a Cursor aligned at the top left corner of a ClipRect
     pub fn from_top_left_of(r: ClipRect) -> Cursor {
         Cursor {
             pt: r.min,
@@ -51,18 +59,26 @@ impl Cursor {
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ClipRect {
     pub min: Pt,
     pub max: Pt,
 }
 impl ClipRect {
-    /// Initialize a rectangle
+    /// Initialize a rectangle using automatic min/max fixup for corner points
     pub fn new(min_x: usize, min_y: usize, max_x: usize, max_y: usize) -> ClipRect {
-        ClipRect {
-            min: Pt { x: min_x, y: min_y },
-            max: Pt { x: max_x, y: max_y },
+        // Make sure min_x <= max_x && min_y <= max_y
+        let mut min = Pt { x: min_x, y: min_y };
+        let mut max = Pt { x: max_x, y: max_y };
+        if min_x > max_x {
+            min.x = max_x;
+            max.x = min_x;
         }
+        if min_y > max_y {
+            min.y = max_y;
+            max.y = min_y;
+        }
+        ClipRect { min, max }
     }
     /// Make a rectangle of the full screen size
     pub fn full_screen() -> ClipRect {
@@ -76,6 +92,7 @@ impl ClipRect {
 }
 
 /// Style options for Latin script fonts
+#[derive(Copy, Clone, Debug)]
 pub enum Style {
     Bold,
     Regular,
@@ -271,5 +288,43 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
         if dest_low_word < dest_high_word {
             fb[base + dest_high_word] |= 0xffffffff >> (32 - px_in_dest_high_word);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cursor_equivalence() {
+        let c1 = Cursor {
+            pt: Pt { x: 1, y: 2 },
+            line_height: 8,
+        };
+        let c2 = Cursor::new(1, 2, 8);
+        assert_eq!(c1, c2);
+    }
+
+    #[test]
+    fn test_clip_rect_equivalence() {
+        let cr1 = ClipRect {
+            min: Pt { x: 1, y: 2 },
+            max: Pt { x: 8, y: 9 },
+        };
+        // Called properly:
+        let cr2 = ClipRect::new(1, 2, 8, 9);
+        // Called with mixed up corners that should get auto-corrected
+        let cr3 = ClipRect::new(8, 2, 1, 9);
+        let cr4 = ClipRect::new(1, 9, 8, 2);
+        assert_eq!(cr1, cr2);
+        assert_eq!(cr2, cr3);
+        assert_eq!(cr3, cr4);
+    }
+
+    #[test]
+    fn test_cursor_from_clip_rect() {
+        let cr = ClipRect::new(1, 2, 8, 9);
+        let c = Cursor::from_top_left_of(cr);
+        assert_eq!(c.pt, cr.min);
     }
 }
