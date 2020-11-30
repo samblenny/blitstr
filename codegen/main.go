@@ -19,7 +19,7 @@ import (
 )
 
 // Command line switch to confirm intent of writing output files
-const confirm = "--replace-font-files"
+const confirm = "--write"
 
 // Main: check for confirmation switch before writing files
 func main() {
