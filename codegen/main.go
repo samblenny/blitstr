@@ -62,7 +62,15 @@ func fonts() []lib.FontSpec {
 // Generate rust source code files for fonts
 func codegen() {
 	for _, f := range fonts() {
-		data := genRustyFontData(f)
+		// Find all the glyphs and pack them into a list of blit pattern objects
+		pl := patternListFromSpriteSheet(f)
+		// Make rust code for the blit pattern DATA array, plus an index list
+		rb := rustyBlitsFromPatternList(pl)
+		rb.AddAliasesToIndex(f.AliasList, Murmur3Seed)
+		data := renderTemplate(lib.DataTemplate, "data", struct {
+			RB     lib.RustyBlits
+			M3Seed uint32
+		}{rb, Murmur3Seed})
 		context := struct {
 			Font    lib.FontSpec
 			OutPath string
@@ -76,26 +84,13 @@ func codegen() {
 	}
 }
 
-// Generate rust code for glyph blit pattern data and related grapheme cluster index
-func genRustyFontData(fs lib.FontSpec) string {
-	// Find all the glyphs and pack them into a list of blit pattern objects
-	pl := patternListFromSpriteSheet(fs)
-	// Make rust code for the blit pattern DATA array, plus an index list
-	rb := rustyBlitsFromPatternList(pl)
-	rb.AddAliasesToIndex(fs.AliasList, Murmur3Seed)
-	return renderTemplate(lib.DataTemplate, "data", struct {
-		RB     lib.RustyBlits
-		M3Seed uint32
-	}{rb, 0})
-}
-
 // Extract glyph sprites from a PNG grid and pack them into a list of blit pattern objects
 func patternListFromSpriteSheet(fs lib.FontSpec) []lib.BlitPattern {
 	// Read glyphs from png file
 	img := readPNGFile(fs.Sprites)
 	var patternList []lib.BlitPattern
 	for _, cs := range fs.CSList {
-		blitPattern := lib.ConvertGlyphToBlitPattern(img, fs, cs, enableDebug)
+		blitPattern := lib.NewBlitPattern(img, fs, cs, enableDebug)
 		patternList = append(patternList, blitPattern)
 	}
 	return patternList

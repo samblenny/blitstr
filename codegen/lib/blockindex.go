@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// Index for grapheme clusters in the same Unicode block
+type BlockIndex []ClusterOffsetEntry
+
 // Format the inner elements of a [u32; n] cluster hash index table for one block
 func (coIndex BlockIndex) RustCodeForClusterHashes() string {
 	var rustCode []string

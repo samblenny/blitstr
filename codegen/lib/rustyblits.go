@@ -8,6 +8,13 @@ import (
 	"sort"
 )
 
+// Holds an index list and rust source code for a font's worth of blit patterns
+type RustyBlits struct {
+	Code    string
+	DataLen int
+	Index   FontIndex
+}
+
 // Add a list of grapheme cluster aliases to a RustyBlits.Index FontIndex
 func (rb RustyBlits) AddAliasesToIndex(aliasList []GCAlias, m3Seed uint32) {
 	for _, gcAlias := range aliasList {
