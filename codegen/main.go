@@ -46,7 +46,7 @@ const Murmur3Seed uint32 = 0
 // Spec for how to generate font source code files from glyph grid sprite sheets
 func fonts() []font.FontSpec {
 	return []font.FontSpec{
-		font.FontSpec{"Emoji", "img/emoji_13_0_32x32_o3x3.png", 32, 16, 0, 0, twemoji, "emoji.rs"},
+		font.FontSpec{"Emoji", "img/emoji_13_0.png", 32, 16, 0, 0, twemoji, "emoji.rs"},
 		font.FontSpec{"Bold", "img/bold.png", 30, 16, 2, 2, chicago, "bold.rs"},
 		font.FontSpec{"Regular", "img/regular.png", 30, 16, 2, 2, geneva, "regular.rs"},
 		font.FontSpec{"Small", "img/small.png", 24, 16, 2, 2, geneva, "small.rs"},
