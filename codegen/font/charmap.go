@@ -10,17 +10,10 @@ import (
 	"strings"
 )
 
-// Holds specification for a Unicode block (codepoint bounds and identifying string)
-type UBlock struct {
-	Low  uint32
-	High uint32
-	Name string
-}
-
 // Unicode blocks containing leading Unicode Scalars of grapheme clusters used
 // in currently supported fonts. For full list of Unicode blocks, see
 // https://www.unicode.org/Public/UCD/latest/ucd/Blocks.txt
-func KnownBlocks() []UBlock {
+func knownBlocks() []UBlock {
 	return []UBlock{
 		UBlock{0x0000, 0x007F, "BASIC_LATIN"},                             // Latin, Emoji
 		UBlock{0x0080, 0x00FF, "LATIN_1_SUPPLEMENT"},                      // Latin, Emoji
@@ -55,19 +48,12 @@ func KnownBlocks() []UBlock {
 
 // Given a Unicode codepoint, return the Unicode block it belongs to
 func Block(c uint32) UBlock {
-	for _, b := range KnownBlocks() {
+	for _, b := range knownBlocks() {
 		if b.Low <= c && c <= b.High {
 			return b
 		}
 	}
 	panic(fmt.Errorf("Codepoint %X belongs to an unknown Unicode block", c))
-}
-
-// Holds mappings from extended grapheme clusters to sprite sheet glyph grid coordinates
-type CharSpec struct {
-	HexCluster string
-	Row        int
-	Col        int
 }
 
 // Parse and return the first codepoint of a hex grapheme cluster string.
@@ -359,12 +345,6 @@ func SysLatinMap() []CharSpec {
 		// Unicode Specials Block
 		CharSpec{"FFFD", 0, 15}, // "�"
 	}
-}
-
-// Holds an alias for a hex-codepoint grapheme cluster in the primary index
-type GCAlias struct {
-	CanonHex string // Cannonical form in the index (has a CharSpec)
-	AliasHex string // This one should map to same glyph as CanonHex
 }
 
 // Return a list of grapheme cluster aliases for the emoji font

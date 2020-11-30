@@ -9,25 +9,6 @@ import (
 	"strings"
 )
 
-type Matrix [][]int
-type MatrixRow []int
-type BlitPattern struct {
-	Words []uint32
-	CS    CharSpec
-}
-
-// Holds description of sprite sheet and character map for generating a font
-type FontSpec struct {
-	Name    string // Name of font
-	Sprites string // Which file holds the sprite sheet image with the grid of glyphs?
-	Size    int    // How many pixels on a side is each glyph (precondition: square glyphs)
-	Cols    int    // How many glyphs wide is the grid?
-	Gutter  int    // How many px between glyphs?
-	Border  int    // How many px wide are top and left borders?
-	Legal   string // What credits or license notices need to be included in font file comments?
-	RustOut string // Where should the generated source code go?
-}
-
 // Extract matrix of pixels from an image containing grid of glyphs
 // - img: image.Image from png file containing glyph grid
 // - font: Glyph sheet specs (glyph size, border/gutter, etc)
