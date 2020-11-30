@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Sam Blenny
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
-package font
+package lib
 
 import (
 	"fmt"
@@ -92,7 +92,7 @@ func StringFromHexGC(hexGC string) string {
 
 // Return mapping of hex-codepoint format grapheme clusters to grid coordinates
 // in a glyph sprite sheet for the emoji font
-func EmojiMap(fs FontSpec, inputFile string) []CharSpec {
+func EmojiMap(columns int, inputFile string) []CharSpec {
 	text, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		panic(err)
@@ -113,7 +113,7 @@ func EmojiMap(fs FontSpec, inputFile string) []CharSpec {
 			csList = append(csList, CharSpec{txt, row, col})
 			// Advance to next glyph position by row-major order
 			col += 1
-			if col == fs.Cols {
+			if col == columns {
 				row += 1
 				col = 0
 			}
