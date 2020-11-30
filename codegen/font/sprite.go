@@ -12,7 +12,7 @@ import (
 type Matrix [][]int
 type MatrixRow []int
 type BlitPattern struct {
-	Bytes []uint32
+	Words []uint32
 	CS    CharSpec
 }
 
@@ -211,20 +211,20 @@ func convertMatrixToPattern(pxMatrix Matrix, yOffset uint32) []uint32 {
 func ConvertPatternToRust(pattern BlitPattern, comment string) string {
 	patternStr := fmt.Sprintf("    // %s\n    ", comment)
 	wordsPerRow := uint32(8)
-	ceilRow := uint32(len(pattern.Bytes)) / wordsPerRow
-	if uint32(len(pattern.Bytes))%wordsPerRow > 0 {
+	ceilRow := uint32(len(pattern.Words)) / wordsPerRow
+	if uint32(len(pattern.Words))%wordsPerRow > 0 {
 		ceilRow += 1
 	}
 	for i := uint32(0); i < ceilRow; i++ {
 		start := i * wordsPerRow
-		end := min(uint32(len(pattern.Bytes)), (i+1)*wordsPerRow)
-		line := pattern.Bytes[start:end]
+		end := min(uint32(len(pattern.Words)), (i+1)*wordsPerRow)
+		line := pattern.Words[start:end]
 		var s []string
 		for _, word := range line {
 			s = append(s, fmt.Sprintf("0x%08x", word))
 		}
 		patternStr += strings.Join(s, ", ") + ","
-		if end < uint32(len(pattern.Bytes)) {
+		if end < uint32(len(pattern.Words)) {
 			patternStr += "\n    "
 		}
 	}

@@ -129,7 +129,7 @@ func rustyBlitsFromPatternList(pl []font.BlitPattern) RustyBlits {
 		}
 		block := font.Block(p.CS.FirstCodepoint())
 		rb.Index[block] = append(rb.Index[block], indexEntry)
-		rb.DataLen += len(p.Bytes)
+		rb.DataLen += len(p.Words)
 	}
 	rb.SortIndex()
 	return rb
