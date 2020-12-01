@@ -43,16 +43,20 @@ func fonts() []FontSpec {
 	return []FontSpec{
 		FontSpec{"Emoji", "img/emoji_13_0.png", 32, 16, 0, 0, twemoji,
 			EmojiMap(16, emojiIndex), EmojiAliases(emojiAliases),
-			"emoji.rs"},
+			"emoji.rs",
+		},
 		FontSpec{"Bold", "img/bold.png", 30, 16, 2, 2, chicago,
-			SysLatinMap(), SysLatinAliases(),
-			"bold.rs"},
+			LatinMap(), LatinAliases(),
+			"bold.rs",
+		},
 		FontSpec{"Regular", "img/regular.png", 30, 16, 2, 2, geneva,
-			SysLatinMap(), SysLatinAliases(),
-			"regular.rs"},
+			LatinMap(), LatinAliases(),
+			"regular.rs",
+		},
 		FontSpec{"Small", "img/small.png", 24, 16, 2, 2, geneva,
-			SysLatinMap(), SysLatinAliases(),
-			"small.rs"},
+			LatinMap(), LatinAliases(),
+			"small.rs",
+		},
 	}
 }
 

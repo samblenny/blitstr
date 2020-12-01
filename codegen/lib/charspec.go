@@ -92,7 +92,7 @@ func EmojiMap(columns int, inputFile string) []CharSpec {
 
 // Return mapping of hex-codepoint format grapheme clusters to grid coordinates
 // in a glyph sprite sheet for the system latin fonts (Bold & Regular)
-func SysLatinMap() []CharSpec {
+func LatinMap() []CharSpec {
 	return []CharSpec{
 		// Unicode Basic Latin block
 		CharSpec{"20", 0, 2},  // " "
@@ -343,7 +343,7 @@ func EmojiAliases(inputFile string) []GCAlias {
 // Unicode normalization form D (decomposed) grapheme clusters can be associated
 // with their corresponding normalization form C (composed) grapheme clusters in
 // the primary index. This helps avoid the need to normalize UTF-8 strings.
-func SysLatinAliases() []GCAlias {
+func LatinAliases() []GCAlias {
 	return []GCAlias{
 		GCAlias{"C0", "41-300"}, // nfc: [C0, À],  nfd: [41-300, À]
 		GCAlias{"C1", "41-301"}, // nfc: [C1, Á],  nfd: [41-301, Á]
