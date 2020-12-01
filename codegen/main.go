@@ -5,15 +5,12 @@ package main
 
 import (
 	"blitstr/codegen/lib"
-	"bytes"
 	"fmt"
 	"image"
 	"image/png"
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
-	"text/template"
 )
 
 // Command line switch to confirm intent of writing output files
@@ -67,17 +64,10 @@ func codegen() {
 		// Make rust code for the blit pattern DATA array, plus an index list
 		gs := lib.NewGlyphSetFrom(pl, Murmur3Seed)
 		gs.AddAliasesToIndex(f.AliasList, Murmur3Seed)
-		data := renderTemplate(lib.DataTemplate, "data", struct {
-			GS     lib.GlyphSet
-			M3Seed uint32
-		}{gs, Murmur3Seed})
-		context := struct {
-			Font    lib.FontSpec
-			OutPath string
-			Data    string
-		}{f, outPath, data}
+		data := lib.RenderTemplate(lib.DataTemplate, "data", lib.DataTemplateContext{gs, Murmur3Seed})
+		context := lib.FontFileTemplateContext{f, outPath, data}
 		// Generate rust source code and write it to a file
-		code := renderTemplate(lib.FontFileTemplate, "font", context)
+		code := lib.RenderTemplate(lib.FontFileTemplate, "font", context)
 		op := path.Join(outPath, f.RustOut)
 		fmt.Println("Writing to", op)
 		ioutil.WriteFile(op, []byte(code), 0644)
@@ -112,25 +102,9 @@ func readPNGFile(name string) image.Image {
 
 // Print usage message
 func usage() {
-	context := struct {
-		Confirm string
-		OutPath string
-		Fonts   []lib.FontSpec
-	}{confirm, outPath, fonts()}
-	s := renderTemplate(lib.UsageTemplate, "usage", context)
+	context := lib.UsageTemplateContext{confirm, outPath, fonts()}
+	s := lib.RenderTemplate(lib.UsageTemplate, "usage", context)
 	fmt.Println(s)
-}
-
-// Return a string from rendering the given template and context data
-func renderTemplate(templateString string, name string, context interface{}) string {
-	fmap := template.FuncMap{"ToLower": strings.ToLower}
-	t := template.Must(template.New(name).Funcs(fmap).Parse(templateString))
-	var buf bytes.Buffer
-	err := t.Execute(&buf, context)
-	if err != nil {
-		panic(err)
-	}
-	return buf.String()
 }
 
 // Emoji graphics legal notice

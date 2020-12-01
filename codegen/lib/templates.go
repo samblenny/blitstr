@@ -3,6 +3,44 @@
 //
 package lib
 
+import (
+	"strings"
+	"text/template"
+	"bytes"
+)
+
+// Holds data for rendering UsageTemplate
+type UsageTemplateContext struct {
+	Confirm string
+	OutPath string
+	Fonts   []FontSpec
+}
+
+// Holds data for rendering DataTemplate
+type DataTemplateContext struct {
+	GS     GlyphSet
+	M3Seed uint32
+}
+
+// Holds data for rendering FontFileTemplate
+type FontFileTemplateContext struct {
+	Font    FontSpec
+	OutPath string
+	Data    string
+}
+
+// Return a string from rendering the given template and context data
+func RenderTemplate(templateString string, name string, context interface{}) string {
+	fmap := template.FuncMap{"ToLower": strings.ToLower}
+	t := template.Must(template.New(name).Funcs(fmap).Parse(templateString))
+	var buf bytes.Buffer
+	err := t.Execute(&buf, context)
+	if err != nil {
+		panic(err)
+	}
+	return buf.String()
+}
+
 // Template with usage instructions for the command line tool
 const UsageTemplate = `
 This tool generates fonts in the form of rust source code.
