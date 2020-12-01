@@ -64,10 +64,9 @@ func codegen() {
 		// Make rust code for the blit pattern DATA array, plus an index list
 		gs := NewGlyphSetFrom(pl, Murmur3Seed)
 		gs.AddAliasesToIndex(f.AliasList, Murmur3Seed)
-		data := RenderTemplate(DataTemplate, "data", DataTemplateContext{gs, Murmur3Seed})
-		context := FontFileTemplateContext{f, outPath, data}
+		data := RenderDataTemplate(gs, Murmur3Seed)
 		// Generate rust source code and write it to a file
-		code := RenderTemplate(FontFileTemplate, "font", context)
+		code := RenderFontFileTemplate(f, outPath, data)
 		op := path.Join(outPath, f.RustOut)
 		fmt.Println("Writing to", op)
 		ioutil.WriteFile(op, []byte(code), 0644)
@@ -102,9 +101,8 @@ func readPNGFile(name string) image.Image {
 
 // Print usage message
 func usage() {
-	context := UsageTemplateContext{confirm, outPath, fonts()}
-	s := RenderTemplate(UsageTemplate, "usage", context)
-	fmt.Println(s)
+	u := RenderUsageTemplate(confirm, outPath, fonts())
+	fmt.Println(u)
 }
 
 // Emoji graphics legal notice
