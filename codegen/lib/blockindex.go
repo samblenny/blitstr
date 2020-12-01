@@ -10,19 +10,30 @@ import (
 )
 
 // Index for grapheme clusters in the same Unicode block
-type BlockIndex []ClusterOffsetEntry
+type BlockIndex []clusterOffsetEntry
 
 // An index entry for translating from grapheme cluster to blit pattern
-type ClusterOffsetEntry struct {
+type clusterOffsetEntry struct {
 	M3Hash     uint32
 	Cluster    string // Parsed UTF-8 form (not hex codepoints)
 	DataOffset int
 }
 
+// Insert an index entry for (hash, grapheme_cluster, data_offset)
+func (b BlockIndex) Insert(graphemeCluster string, m3Seed uint32, dataOffset int) BlockIndex {
+	indexEntry := clusterOffsetEntry{
+		Murmur3(graphemeCluster, m3Seed),
+		graphemeCluster,
+		dataOffset,
+	}
+	b = append(b, indexEntry)
+	return b
+}
+
 // Format the inner elements of a [u32; n] cluster hash index table for one block
-func (coIndex BlockIndex) RustCodeForClusterHashes() string {
+func (b BlockIndex) RustCodeForClusterHashes() string {
 	var rustCode []string
-	for _, entry := range coIndex {
+	for _, entry := range b {
 		hash := fmt.Sprintf("0x%08X", entry.M3Hash)
 		label := LabelForCluster(entry.Cluster)
 		rustCode = append(rustCode, fmt.Sprintf("%s,  // %s", hash, label))
@@ -31,9 +42,9 @@ func (coIndex BlockIndex) RustCodeForClusterHashes() string {
 }
 
 // Format the inner elements of a [u32; n] blit pattern offset table for one block
-func (coIndex BlockIndex) RustCodeForOffsets() string {
+func (b BlockIndex) RustCodeForOffsets() string {
 	var rustCode []string
-	for _, entry := range coIndex {
+	for _, entry := range b {
 		offset := fmt.Sprintf("%d,", entry.DataOffset)
 		label := LabelForCluster(entry.Cluster)
 		rustCode = append(rustCode, fmt.Sprintf("%-5s // %s", offset, label))
@@ -45,10 +56,10 @@ func (coIndex BlockIndex) RustCodeForOffsets() string {
 // facilitate efficient greedy matching. For example, when the index for a block
 // has grapheme clusters of length 1 or 5 codepoints long, the grapheme cluster
 // matching code for that block need not look ahead beyond 5 codepoints.
-func (bDex BlockIndex) ClusterLengthList() []int {
+func (b BlockIndex) ClusterLengthList() []int {
 	// Make a histogram
 	blockHisto := map[int]int{}
-	for _, entry := range bDex {
+	for _, entry := range b {
 		codepoints := []rune(entry.Cluster)
 		blockHisto[len(codepoints)] += 1
 	}

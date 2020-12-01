@@ -25,13 +25,8 @@ func NewRustyBlitsFrom(pl []BlitPattern, m3Seed uint32) RustyBlits {
 		comment := fmt.Sprintf("[%d]: %s %s", rb.DataLen, p.CS.HexCluster, label)
 		rb.Code += ConvertPatternToRust(p, comment)
 		// Update the block index with the correct offset (DATA[n]) for pattern header
-		indexEntry := ClusterOffsetEntry{
-			Murmur3(p.CS.GraphemeCluster(), m3Seed),
-			p.CS.GraphemeCluster(),
-			rb.DataLen,
-		}
 		block := Block(p.CS.FirstCodepoint())
-		rb.Index[block] = append(rb.Index[block], indexEntry)
+		rb.Index[block] = rb.Index[block].Insert(p.CS.GraphemeCluster(), m3Seed, rb.DataLen)
 		rb.DataLen += len(p.Words)
 	}
 	rb.SortIndex()
@@ -52,15 +47,7 @@ func (rb RustyBlits) AddAliasesToIndex(aliasList []GCAlias, m3Seed uint32) {
 		aliasUtf8Cluster := StringFromHexGC(gcAlias.AliasHex)
 		firstCodepoint = uint32([]rune(aliasUtf8Cluster)[0])
 		block = Block(firstCodepoint)
-		aliasEntry := ClusterOffsetEntry{
-			Murmur3(aliasUtf8Cluster, m3Seed),
-			aliasUtf8Cluster,
-			glyphDataOffset,
-		}
-		// Insert Alias entry. Inserting each entry individually and
-		// sorting after each one is an inefficient algorithm, but I'm
-		// guessing the lists will be short enough that it won't matter.
-		rb.Index[block] = append(rb.Index[block], aliasEntry)
+		rb.Index[block] = rb.Index[block].Insert(aliasUtf8Cluster, m3Seed, glyphDataOffset)
 		rb.SortIndex()
 	}
 }
