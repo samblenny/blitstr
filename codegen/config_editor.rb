@@ -301,7 +301,7 @@ icon_index = {
     comment: ["Before making changes here, see ../config_editor.rb."],
     map: [
         # Unicode Private Use Area assignments for UI icons
-        {hex: "E701", row: 1, col: 0, label: "Battery_25"},
+        {hex: "E700", row: 0, col: 0, label: "Battery_05"},
         {hex: "E701", row: 1, col: 0, label: "Battery_25"},
         {hex: "E702", row: 2, col: 0, label: "Battery_50"},
         {hex: "E703", row: 3, col: 0, label: "Battery_75"},
