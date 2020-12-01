@@ -19,7 +19,7 @@ type clusterOffsetEntry struct {
 	DataOffset int
 }
 
-// Insert an index entry for (hash, grapheme_cluster, data_offset)
+// Insert an index entry for (grapheme cluster hash, glyph blit pattern data offset)
 func (b BlockIndex) Insert(graphemeCluster string, m3Seed uint32, dataOffset int) BlockIndex {
 	indexEntry := clusterOffsetEntry{
 		Murmur3(graphemeCluster, m3Seed),

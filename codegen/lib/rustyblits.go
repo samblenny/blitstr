@@ -25,11 +25,9 @@ func NewRustyBlitsFrom(pl []BlitPattern, m3Seed uint32) RustyBlits {
 		comment := fmt.Sprintf("[%d]: %s %s", rb.DataLen, p.CS.HexCluster, label)
 		rb.Code += ConvertPatternToRust(p, comment)
 		// Update the block index with the correct offset (DATA[n]) for pattern header
-		block := Block(p.CS.FirstCodepoint())
-		rb.Index[block] = rb.Index[block].Insert(p.CS.GraphemeCluster(), m3Seed, rb.DataLen)
+		rb.Insert(p.CS.GraphemeCluster(), m3Seed, rb.DataLen)
 		rb.DataLen += len(p.Words)
 	}
-	rb.SortIndex()
 	return rb
 }
 
@@ -45,11 +43,16 @@ func (rb RustyBlits) AddAliasesToIndex(aliasList []GCAlias, m3Seed uint32) {
 		// Important note: the Unicode block for the first codepoint of
 		// a Form C vs. Form D normalization may be *different*!
 		aliasUtf8Cluster := StringFromHexGC(gcAlias.AliasHex)
-		firstCodepoint = uint32([]rune(aliasUtf8Cluster)[0])
-		block = Block(firstCodepoint)
-		rb.Index[block] = rb.Index[block].Insert(aliasUtf8Cluster, m3Seed, glyphDataOffset)
-		rb.SortIndex()
+		rb.Insert(aliasUtf8Cluster, m3Seed, glyphDataOffset)
 	}
+}
+
+// Insert entry into index of (grapheme cluster hash, glyph blit pattern data offset)
+func (rb RustyBlits) Insert(graphemeCluster string, m3Seed uint32, dataOffset int) {
+	firstCodepoint := uint32([]rune(graphemeCluster)[0])
+	block := Block(firstCodepoint)
+	rb.Index[block] = rb.Index[block].Insert(graphemeCluster, m3Seed, dataOffset)
+	rb.SortIndex()
 }
 
 // Find data offset for the grapheme cluster in a RustyBlits.index, or panic
