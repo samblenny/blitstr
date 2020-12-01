@@ -1,3 +1,6 @@
+# Copyright (c) 2020 Sam Blenny
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
 # Build an alias list mapping from Unicode normalization form C to form D for
 # grapheme clusters in the hex cluster list below (Unicode Latin* blocks).
 #
