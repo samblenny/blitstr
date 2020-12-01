@@ -65,7 +65,7 @@ func codegen() {
 		// Find all the glyphs and pack them into a list of blit pattern objects
 		pl := patternListFromSpriteSheet(f)
 		// Make rust code for the blit pattern DATA array, plus an index list
-		rb := rustyBlitsFromPatternList(pl)
+		rb := lib.NewRustyBlitsFrom(pl, Murmur3Seed)
 		rb.AddAliasesToIndex(f.AliasList, Murmur3Seed)
 		data := renderTemplate(lib.DataTemplate, "data", struct {
 			RB     lib.RustyBlits
@@ -94,31 +94,6 @@ func patternListFromSpriteSheet(fs lib.FontSpec) []lib.BlitPattern {
 		patternList = append(patternList, blitPattern)
 	}
 	return patternList
-}
-
-// Make rust source code and an index list from a list of glyph blit patterns.
-// When this finishes, rust source code for the `DATA: [u32; n] = [...];` array
-// of concatenated blit patterns is in the return values's .Code. The length (n)
-// of the `DATA: [u32; n]...` blit pattern array is in .DataLen, and the
-// ClusterOffsetEntry{...} index entries are in .Index.
-func rustyBlitsFromPatternList(pl []lib.BlitPattern) lib.RustyBlits {
-	rb := lib.NewRustyBlits()
-	for _, p := range pl {
-		label := lib.LabelForCluster(p.CS.GraphemeCluster())
-		comment := fmt.Sprintf("[%d]: %s %s", rb.DataLen, p.CS.HexCluster, label)
-		rb.Code += lib.ConvertPatternToRust(p, comment)
-		// Update the block index with the correct offset (DATA[n]) for pattern header
-		indexEntry := lib.ClusterOffsetEntry{
-			lib.Murmur3(p.CS.GraphemeCluster(), Murmur3Seed),
-			p.CS.GraphemeCluster(),
-			rb.DataLen,
-		}
-		block := lib.Block(p.CS.FirstCodepoint())
-		rb.Index[block] = append(rb.Index[block], indexEntry)
-		rb.DataLen += len(p.Words)
-	}
-	rb.SortIndex()
-	return rb
 }
 
 // Read the specified PNG file and convert its data into an image object

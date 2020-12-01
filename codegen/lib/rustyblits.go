@@ -15,9 +15,27 @@ type RustyBlits struct {
 	Index   map[UBlock]BlockIndex
 }
 
-// Make a new RustyBlits
-func NewRustyBlits() RustyBlits {
-	return RustyBlits{"", 0, map[UBlock]BlockIndex{}}
+// Make rust source code and an index list from a list of glyph blit patterns.
+// The point of this is to prepare data in a way that's convenient for including
+// in the context data used to render a .rs source code file template.
+func NewRustyBlitsFrom(pl []BlitPattern, m3Seed uint32) RustyBlits {
+	rb := RustyBlits{"", 0, map[UBlock]BlockIndex{}}
+	for _, p := range pl {
+		label := LabelForCluster(p.CS.GraphemeCluster())
+		comment := fmt.Sprintf("[%d]: %s %s", rb.DataLen, p.CS.HexCluster, label)
+		rb.Code += ConvertPatternToRust(p, comment)
+		// Update the block index with the correct offset (DATA[n]) for pattern header
+		indexEntry := ClusterOffsetEntry{
+			Murmur3(p.CS.GraphemeCluster(), m3Seed),
+			p.CS.GraphemeCluster(),
+			rb.DataLen,
+		}
+		block := Block(p.CS.FirstCodepoint())
+		rb.Index[block] = append(rb.Index[block], indexEntry)
+		rb.DataLen += len(p.Words)
+	}
+	rb.SortIndex()
+	return rb
 }
 
 // Add a list of grapheme cluster aliases to a RustyBlits.Index font index

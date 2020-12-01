@@ -12,6 +12,13 @@ import (
 // Index for grapheme clusters in the same Unicode block
 type BlockIndex []ClusterOffsetEntry
 
+// An index entry for translating from grapheme cluster to blit pattern
+type ClusterOffsetEntry struct {
+	M3Hash     uint32
+	Cluster    string // Parsed UTF-8 form (not hex codepoints)
+	DataOffset int
+}
+
 // Format the inner elements of a [u32; n] cluster hash index table for one block
 func (coIndex BlockIndex) RustCodeForClusterHashes() string {
 	var rustCode []string
