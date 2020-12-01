@@ -12,10 +12,15 @@ import (
 type RustyBlits struct {
 	Code    string
 	DataLen int
-	Index   FontIndex
+	Index   map[UBlock]BlockIndex
 }
 
-// Add a list of grapheme cluster aliases to a RustyBlits.Index FontIndex
+// Make a new RustyBlits
+func NewRustyBlits() RustyBlits {
+	return RustyBlits{"", 0, map[UBlock]BlockIndex{}}
+}
+
+// Add a list of grapheme cluster aliases to a RustyBlits.Index font index
 func (rb RustyBlits) AddAliasesToIndex(aliasList []GCAlias, m3Seed uint32) {
 	for _, gcAlias := range aliasList {
 		// Find the glyph pattern data offset for the cannonical grapheme cluster
@@ -56,7 +61,7 @@ func (rb RustyBlits) FindDataOffset(block UBlock, utf8Cluster string, m3Seed uin
 	return dex[n].DataOffset
 }
 
-// Sort the index for each Unicode block of a RustyBlits.Index FontIndex
+// Sort the index for each Unicode block of a RustyBlits.Index font index
 func (rb RustyBlits) SortIndex() {
 	for _, v := range rb.Index {
 		sort.Slice(v, func(i, j int) bool { return v[i].M3Hash < v[j].M3Hash })

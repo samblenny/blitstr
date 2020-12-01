@@ -102,7 +102,7 @@ func patternListFromSpriteSheet(fs lib.FontSpec) []lib.BlitPattern {
 // of the `DATA: [u32; n]...` blit pattern array is in .DataLen, and the
 // ClusterOffsetEntry{...} index entries are in .Index.
 func rustyBlitsFromPatternList(pl []lib.BlitPattern) lib.RustyBlits {
-	rb := lib.RustyBlits{"", 0, lib.FontIndex{}}
+	rb := lib.NewRustyBlits()
 	for _, p := range pl {
 		label := lib.LabelForCluster(p.CS.GraphemeCluster())
 		comment := fmt.Sprintf("[%d]: %s %s", rb.DataLen, p.CS.HexCluster, label)

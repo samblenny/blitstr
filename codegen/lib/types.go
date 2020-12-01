@@ -3,9 +3,6 @@
 //
 package lib
 
-// Index for all the Unicode blocks in a font
-type FontIndex map[UBlock]BlockIndex
-
 // An index entry for translating from grapheme cluster to blit pattern
 type ClusterOffsetEntry struct {
 	M3Hash     uint32
