@@ -22,7 +22,7 @@ func NewGlyphSetFrom(pl []BlitPattern, m3Seed uint32) GlyphSet {
 	g := GlyphSet{"", 0, map[UBlock]BlockIndex{}}
 	for _, p := range pl {
 		label := LabelForCluster(p.CS.GraphemeCluster())
-		comment := fmt.Sprintf("[%d]: %s %s", g.DataLen, p.CS.HexCluster, label)
+		comment := fmt.Sprintf("[%d]: %s %s", g.DataLen, p.CS.Hex, label)
 		g.Code += ConvertPatternToRust(p, comment)
 		// Update the block index with the correct offset (DATA[n]) for pattern header
 		g.Insert(p.CS.GraphemeCluster(), m3Seed, g.DataLen)

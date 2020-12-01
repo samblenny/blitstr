@@ -1,0 +1,17 @@
+{ "comment": [
+"Before making changes here, see ../config_editor.rb."
+], "map": [
+{ "hex": "E701", "row": 1, "col": 0, "label": "Battery_25" },
+{ "hex": "E701", "row": 1, "col": 0, "label": "Battery_25" },
+{ "hex": "E702", "row": 2, "col": 0, "label": "Battery_50" },
+{ "hex": "E703", "row": 3, "col": 0, "label": "Battery_75" },
+{ "hex": "E704", "row": 4, "col": 0, "label": "Battery_99" },
+{ "hex": "E705", "row": 5, "col": 0, "label": "Radio_3" },
+{ "hex": "E706", "row": 6, "col": 0, "label": "Radio_2" },
+{ "hex": "E707", "row": 7, "col": 0, "label": "Radio_1" },
+{ "hex": "E708", "row": 8, "col": 0, "label": "Radio_0" },
+{ "hex": "E709", "row": 9, "col": 0, "label": "Radio_Off" },
+{ "hex": "E70A", "row": 13, "col": 0, "label": "Shift_Arrow" },
+{ "hex": "E70B", "row": 14, "col": 0, "label": "Backspace_Symbol" },
+{ "hex": "E70C", "row": 15, "col": 0, "label": "Enter_Symbol" }
+] }

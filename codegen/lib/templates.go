@@ -10,8 +10,8 @@ import (
 )
 
 // Render the command line usage message
-func RenderUsageTemplate(confirm string, outPath string, fonts []FontSpec) string {
-	context := usageTemplateContext{confirm, outPath, fonts}
+func RenderUsageTemplate(confirm string, fonts []FontSpec) string {
+	context := usageTemplateContext{confirm, fonts}
 	return renderTemplate(usageTemplate, "usage", context)
 }
 
@@ -22,15 +22,14 @@ func RenderDataTemplate(gs GlyphSet, m3Seed uint32) string {
 }
 
 // Render rust source code for font file with index functions and static arrays
-func RenderFontFileTemplate(f FontSpec, outPath string, data string) string {
-	context := fontFileTemplateContext{f, outPath, data}
+func RenderFontFileTemplate(f FontSpec, data string) string {
+	context := fontFileTemplateContext{f, data}
 	return renderTemplate(fontFileTemplate, "fontfile", context)
 }
 
 // Holds data for rendering usageTemplate
 type usageTemplateContext struct {
 	Confirm string
-	OutPath string
 	Fonts   []FontSpec
 }
 
@@ -42,9 +41,8 @@ type dataTemplateContext struct {
 
 // Holds data for rendering fontFileTemplate
 type fontFileTemplateContext struct {
-	Font    FontSpec
-	OutPath string
-	Data    string
+	Font FontSpec
+	Data string
 }
 
 // Return a string from rendering the given template and context data
@@ -65,7 +63,7 @@ This tool generates fonts in the form of rust source code.
 To confirm that you want to write the files, use the {{.Confirm}} switch.
 
 Font files that will be generated:{{range $f := .Fonts}}
-  {{$.OutPath}}/{{$f.RustOut}}{{end}}
+  {{$f.RustOut}}{{end}}
 
 Usage:
     go run main.go {{.Confirm}}
