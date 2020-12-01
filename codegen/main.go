@@ -65,12 +65,12 @@ func codegen() {
 		// Find all the glyphs and pack them into a list of blit pattern objects
 		pl := patternListFromSpriteSheet(f)
 		// Make rust code for the blit pattern DATA array, plus an index list
-		rb := lib.NewRustyBlitsFrom(pl, Murmur3Seed)
-		rb.AddAliasesToIndex(f.AliasList, Murmur3Seed)
+		gs := lib.NewGlyphSetFrom(pl, Murmur3Seed)
+		gs.AddAliasesToIndex(f.AliasList, Murmur3Seed)
 		data := renderTemplate(lib.DataTemplate, "data", struct {
-			RB     lib.RustyBlits
+			GS     lib.GlyphSet
 			M3Seed uint32
-		}{rb, Murmur3Seed})
+		}{gs, Murmur3Seed})
 		context := struct {
 			Font    lib.FontSpec
 			OutPath string

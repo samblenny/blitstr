@@ -56,8 +56,8 @@ pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::G
         None => return Err(super::GlyphNotFound),
     }
     return match first_char {
-        {{ range $_, $k := .RB.IndexKeys -}}
-        {{- with $dex := index $.RB.Index $k -}}
+        {{ range $_, $k := .GS.IndexKeys -}}
+        {{- with $dex := index $.GS.Index $k -}}
         0x{{printf "%X" $k.Low}}..=0x{{printf "%X" $k.High}} => {
             {{ range $_, $gcLen := $dex.ClusterLengthList -}}
             if let Some((offset, bytes_used)) = find_{{ToLower $k.Name}}(cluster, {{$gcLen}}) {
@@ -72,8 +72,8 @@ pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::G
     };
 }
 
-{{ range $_, $k := .RB.IndexKeys -}}
-{{- with $dex := index $.RB.Index $k -}}
+{{ range $_, $k := .GS.IndexKeys -}}
+{{- with $dex := index $.GS.Index $k -}}
 /// Use binary search on table of grapheme cluster hashes to find blit pattern for grapheme cluster.
 /// Only attempt to match grapheme clusters of length limit codepoints.
 fn find_{{ToLower $k.Name}}(cluster: &str, limit: u32) -> Option<(usize, usize)> {
@@ -107,5 +107,5 @@ const OFFSET_{{$k.Name}}: [usize; {{len $dex}}] = [
 ///  h: Height of pattern in pixels
 ///  yOffset: Vertical offset (pixels downward from top of line) to position
 ///     glyph pattern properly relative to text baseline
-pub const DATA: [u32; {{.RB.DataLen}}] = [
-{{.RB.Code}}];`
+pub const DATA: [u32; {{.GS.DataLen}}] = [
+{{.GS.Code}}];`
