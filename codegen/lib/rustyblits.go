@@ -52,7 +52,6 @@ func (rb RustyBlits) Insert(graphemeCluster string, m3Seed uint32, dataOffset in
 	firstCodepoint := uint32([]rune(graphemeCluster)[0])
 	block := Block(firstCodepoint)
 	rb.Index[block] = rb.Index[block].Insert(graphemeCluster, m3Seed, dataOffset)
-	rb.SortIndex()
 }
 
 // Find data offset for the grapheme cluster in a RustyBlits.index, or panic
@@ -67,13 +66,6 @@ func (rb RustyBlits) FindDataOffset(block UBlock, utf8Cluster string, m3Seed uin
 		panic(fmt.Errorf("Grapheme cluster %q was not in rb.Index[block]", utf8Cluster))
 	}
 	return dex[n].DataOffset
-}
-
-// Sort the index for each Unicode block of a RustyBlits.Index font index
-func (rb RustyBlits) SortIndex() {
-	for _, v := range rb.Index {
-		sort.Slice(v, func(i, j int) bool { return v[i].M3Hash < v[j].M3Hash })
-	}
 }
 
 // Get sorted list of Unicode Blocks in the RustyBlits index (this is called from templates)

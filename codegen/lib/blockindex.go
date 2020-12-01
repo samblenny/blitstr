@@ -19,7 +19,8 @@ type clusterOffsetEntry struct {
 	DataOffset int
 }
 
-// Insert an index entry for (grapheme cluster hash, glyph blit pattern data offset)
+// Insert an index entry for (grapheme cluster hash, glyph blit pattern data offset).
+// Maintain sort order according to grapheme cluster hashes.
 func (b BlockIndex) Insert(graphemeCluster string, m3Seed uint32, dataOffset int) BlockIndex {
 	indexEntry := clusterOffsetEntry{
 		Murmur3(graphemeCluster, m3Seed),
@@ -27,6 +28,8 @@ func (b BlockIndex) Insert(graphemeCluster string, m3Seed uint32, dataOffset int
 		dataOffset,
 	}
 	b = append(b, indexEntry)
+	// Sort by m3 hash
+	sort.Slice(b, func(i, j int) bool { return b[i].M3Hash < b[j].M3Hash })
 	return b
 }
 
