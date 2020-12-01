@@ -4,7 +4,7 @@
 package main
 
 import (
-	"blitstr/codegen/lib"
+	. "blitstr/codegen/lib"
 	"fmt"
 	"image"
 	"image/png"
@@ -39,19 +39,19 @@ const emojiAliases = "img/emoji_13_0_aliases.txt"
 const Murmur3Seed uint32 = 0
 
 // Spec for how to generate font source code files from glyph grid sprite sheets
-func fonts() []lib.FontSpec {
-	return []lib.FontSpec{
-		lib.FontSpec{"Emoji", "img/emoji_13_0.png", 32, 16, 0, 0, twemoji,
-			lib.EmojiMap(16, emojiIndex), lib.EmojiAliases(emojiAliases),
+func fonts() []FontSpec {
+	return []FontSpec{
+		FontSpec{"Emoji", "img/emoji_13_0.png", 32, 16, 0, 0, twemoji,
+			EmojiMap(16, emojiIndex), EmojiAliases(emojiAliases),
 			"emoji.rs"},
-		lib.FontSpec{"Bold", "img/bold.png", 30, 16, 2, 2, chicago,
-			lib.SysLatinMap(), lib.SysLatinAliases(),
+		FontSpec{"Bold", "img/bold.png", 30, 16, 2, 2, chicago,
+			SysLatinMap(), SysLatinAliases(),
 			"bold.rs"},
-		lib.FontSpec{"Regular", "img/regular.png", 30, 16, 2, 2, geneva,
-			lib.SysLatinMap(), lib.SysLatinAliases(),
+		FontSpec{"Regular", "img/regular.png", 30, 16, 2, 2, geneva,
+			SysLatinMap(), SysLatinAliases(),
 			"regular.rs"},
-		lib.FontSpec{"Small", "img/small.png", 24, 16, 2, 2, geneva,
-			lib.SysLatinMap(), lib.SysLatinAliases(),
+		FontSpec{"Small", "img/small.png", 24, 16, 2, 2, geneva,
+			SysLatinMap(), SysLatinAliases(),
 			"small.rs"},
 	}
 }
@@ -62,12 +62,12 @@ func codegen() {
 		// Find all the glyphs and pack them into a list of blit pattern objects
 		pl := patternListFromSpriteSheet(f)
 		// Make rust code for the blit pattern DATA array, plus an index list
-		gs := lib.NewGlyphSetFrom(pl, Murmur3Seed)
+		gs := NewGlyphSetFrom(pl, Murmur3Seed)
 		gs.AddAliasesToIndex(f.AliasList, Murmur3Seed)
-		data := lib.RenderTemplate(lib.DataTemplate, "data", lib.DataTemplateContext{gs, Murmur3Seed})
-		context := lib.FontFileTemplateContext{f, outPath, data}
+		data := RenderTemplate(DataTemplate, "data", DataTemplateContext{gs, Murmur3Seed})
+		context := FontFileTemplateContext{f, outPath, data}
 		// Generate rust source code and write it to a file
-		code := lib.RenderTemplate(lib.FontFileTemplate, "font", context)
+		code := RenderTemplate(FontFileTemplate, "font", context)
 		op := path.Join(outPath, f.RustOut)
 		fmt.Println("Writing to", op)
 		ioutil.WriteFile(op, []byte(code), 0644)
@@ -75,12 +75,12 @@ func codegen() {
 }
 
 // Extract glyph sprites from a PNG grid and pack them into a list of blit pattern objects
-func patternListFromSpriteSheet(fs lib.FontSpec) []lib.BlitPattern {
+func patternListFromSpriteSheet(fs FontSpec) []BlitPattern {
 	// Read glyphs from png file
 	img := readPNGFile(fs.Sprites)
-	var patternList []lib.BlitPattern
+	var patternList []BlitPattern
 	for _, cs := range fs.CSList {
-		blitPattern := lib.NewBlitPattern(img, fs, cs, enableDebug)
+		blitPattern := NewBlitPattern(img, fs, cs, enableDebug)
 		patternList = append(patternList, blitPattern)
 	}
 	return patternList
@@ -102,8 +102,8 @@ func readPNGFile(name string) image.Image {
 
 // Print usage message
 func usage() {
-	context := lib.UsageTemplateContext{confirm, outPath, fonts()}
-	s := lib.RenderTemplate(lib.UsageTemplate, "usage", context)
+	context := UsageTemplateContext{confirm, outPath, fonts()}
+	s := RenderTemplate(UsageTemplate, "usage", context)
 	fmt.Println(s)
 }
 
