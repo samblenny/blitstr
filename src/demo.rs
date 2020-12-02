@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 #![forbid(unsafe_code)]
-use super::{clear_region, paint_str, Cursor, FrBuf, Rect, Style};
+use super::{clear_region, paint_str, ClipRect, Cursor, FrBuf, Style};
 
 /// Demonstrate available fonts
 pub fn sample_text(fb: &mut FrBuf) {
@@ -16,8 +16,8 @@ pub fn sample_text(fb: &mut FrBuf) {
         "Zwölf Boxkämpfer jagen Viktor quer über den großen Sylter Deich.\n"
     );
 
-    clear_region(fb, Rect::full_screen());
-    let mut clip = Rect::padded_screen();
+    clear_region(fb, ClipRect::full_screen());
+    let mut clip = ClipRect::padded_screen();
     let c = &mut Cursor::from_top_left_of(clip);
     paint_str(fb, clip, c, Style::Bold, note);
     paint_str(fb, clip, c, Style::Regular, note);
@@ -27,10 +27,18 @@ pub fn sample_text(fb: &mut FrBuf) {
     paint_str(fb, clip, c, Style::Regular, sas3);
     paint_str(fb, clip, c, Style::Regular, sas4);
     paint_str(fb, clip, c, Style::Regular, wrap);
-    // Mess with the clip region
+    // Demonstrate messing with the clip region and cursor:
+    // 1. Convenience function to make a new cursor
+    let c = &mut Cursor::new(c.pt.x, c.pt.y, c.line_height);
+    // 2. Reduce the ClipRect to a small-ish box at the bottom of the screen
+    //    with big margins on its left and right sides
     clip.min.y = c.pt.y + 12;
     clip.max.y -= 8;
     clip.min.x += 30;
     clip.max.x -= 40;
+    // 3. Convenience function to make a new ClipRect with min/max auto-correct
+    //    Note: fn def is `new(min_x: usize, min_y: usize, max_x: usize, max_y: usize)`
+    let clip = ClipRect::new(clip.max.x, clip.min.y, clip.min.x, clip.max.y);
+    // Blit the string
     paint_str(fb, clip, c, Style::Small, wrap);
 }

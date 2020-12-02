@@ -1,6 +1,9 @@
 # blitstr
 
-A safe no_std multi-lingual string blitter for 1-bit monochrome
+A safe* no_std multi-lingual string blitter for 1-bit monochrome
+
+\* "safe" meaning `#![forbid(unsafe_code)]` in the blitstr library
+(wasm demo unavoidably uses `unsafe`)
 
 
 ## WebAssembly Demo
