@@ -5,7 +5,7 @@
 #![forbid(unsafe_code)]
 
 pub mod demo;
-pub mod fonts;
+mod fonts;
 use fonts::{Font, GlyphHeader, GlyphSet};
 
 /// Frame buffer bounds
@@ -22,11 +22,7 @@ pub const fn new_fr_buf() -> FrBuf {
 }
 
 /// Point specifies a pixel coordinate
-<<<<<<< HEAD
-#[derive(Copy, Clone, Debug)]
-=======
 #[derive(Copy, Clone, Debug, PartialEq)]
->>>>>>> samblenny/main
 pub struct Pt {
     pub x: usize,
     pub y: usize,
@@ -35,26 +31,12 @@ pub struct Pt {
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
-<<<<<<< HEAD
-#[derive(Copy, Clone, Debug)]
-=======
 #[derive(Copy, Clone, Debug, PartialEq)]
->>>>>>> samblenny/main
 pub struct Cursor {
     pub pt: Pt,
     pub line_height: usize,
 }
 impl Cursor {
-<<<<<<< HEAD
-    pub fn new(x: i16, y: i16, h: u16) -> Cursor {
-        Cursor {
-            pt: Pt { x: x as usize, y: y as usize },
-            line_height: h as usize,
-        }
-    }
-
-    pub fn from_top_left_of(r: Rect) -> Cursor {
-=======
     // Make a new Cursor. When in doubt, set line_height = 0.
     pub fn new(x: usize, y: usize, line_height: usize) -> Cursor {
         Cursor {
@@ -64,7 +46,6 @@ impl Cursor {
     }
     // Make a Cursor aligned at the top left corner of a ClipRect
     pub fn from_top_left_of(r: ClipRect) -> Cursor {
->>>>>>> samblenny/main
         Cursor {
             pt: r.min,
             line_height: 0,
@@ -78,13 +59,8 @@ impl Cursor {
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
-<<<<<<< HEAD
-#[derive(Copy, Clone, Debug)]
-pub struct Rect {
-=======
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ClipRect {
->>>>>>> samblenny/main
     pub min: Pt,
     pub max: Pt,
 }
@@ -117,35 +93,35 @@ impl ClipRect {
 
 /// Style options for Latin script fonts
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Style {
+pub enum GlyphStyle {
     Small = 0,
     Regular = 1,
     Bold = 2,
 }
 
 /// Convert style to number for use with register-based message passing sytems
-pub fn style_to_arg(s: Style) -> usize {
+pub fn style_to_arg(s: GlyphStyle) -> usize {
     s as usize
 }
 
 /// Convert number to style for use with register-based message passing sytems
-pub fn arg_to_style(arg: usize) -> Style {
+pub fn arg_to_style(arg: usize) -> GlyphStyle {
     match arg {
-        0 => Style::Small,
-        2 => Style::Bold,
-        _ => Style::Regular,
+        0 => GlyphStyle::Small,
+        2 => GlyphStyle::Bold,
+        _ => GlyphStyle::Regular,
     }
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: Style, s: &str) {
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str) {
     // Based on the requested style of Latin text, figure out a priority order
     // of glyph sets to use for looking up grapheme clusters
     let gs1 = GlyphSet::Emoji;
     let gs2 = match st {
-        Style::Bold => GlyphSet::Bold,
-        Style::Regular => GlyphSet::Regular,
-        Style::Small => GlyphSet::Small,
+        GlyphStyle::Bold => GlyphSet::Bold,
+        GlyphStyle::Regular => GlyphSet::Regular,
+        GlyphStyle::Small => GlyphSet::Small,
     };
     // Parse the string, consuming one grapheme cluster for each iteration of
     // the for loop. Since grapheme cluster length varies, s.len() is just an
@@ -368,10 +344,10 @@ mod tests {
 
     #[test]
     fn test_style_arg_conversions() {
-        assert_eq!(Style::Small, arg_to_style(style_to_arg(Style::Small)));
-        assert_eq!(Style::Regular, arg_to_style(style_to_arg(Style::Regular)));
-        assert_eq!(Style::Bold, arg_to_style(style_to_arg(Style::Bold)));
+        assert_eq!(GlyphStyle::Small, arg_to_style(style_to_arg(GlyphStyle::Small)));
+        assert_eq!(GlyphStyle::Regular, arg_to_style(style_to_arg(GlyphStyle::Regular)));
+        assert_eq!(GlyphStyle::Bold, arg_to_style(style_to_arg(GlyphStyle::Bold)));
         let bad_arg = 255;
-        assert_eq!(Style::Regular, arg_to_style(bad_arg));
+        assert_eq!(GlyphStyle::Regular, arg_to_style(bad_arg));
     }
 }

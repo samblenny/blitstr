@@ -74,14 +74,14 @@ pub fn glyph_to_height(glyph: GlyphSet) -> usize {
 }
 
 /// Xous helper to convert a specified GlyphSet into a Style
-use super::Style;
-impl Into<Style> for GlyphSet {
-    fn into(self) -> Style {
+use super::GlyphStyle;
+impl Into<GlyphStyle> for GlyphSet {
+    fn into(self) -> GlyphStyle {
         match self {
-            GlyphSet::Emoji => Style::Regular,
-            GlyphSet::Bold => Style::Bold,
-            GlyphSet::Small => Style::Small,
-            GlyphSet::Regular => Style::Regular,
+            GlyphSet::Emoji => GlyphStyle::Regular,
+            GlyphSet::Bold => GlyphStyle::Bold,
+            GlyphSet::Small => GlyphStyle::Small,
+            GlyphSet::Regular => GlyphStyle::Regular,
         }
     }
 }
