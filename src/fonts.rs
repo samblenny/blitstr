@@ -41,51 +41,6 @@ pub enum GlyphSet {
     Small,
 }
 
-
-/// Xous mappings to turn glyph desciptions into argument codes passed between processes
-pub fn glyph_to_arg(glyph: GlyphSet) -> usize {
-    match glyph {
-        GlyphSet::Small => 0,
-        GlyphSet::Regular => 1,
-        GlyphSet::Bold => 2,
-        GlyphSet::Emoji => 3,
-    }
-}
-
-/// Xous mappings to turn argument codes into glyph desciptions
-pub fn arg_to_glyph(arg: usize) -> GlyphSet {
-    match arg {
-        0 => GlyphSet::Small,
-        1 => GlyphSet::Regular,
-        2 => GlyphSet::Bold,
-        3 => GlyphSet::Emoji,
-        _ => GlyphSet::Regular,
-    }
-}
-
-/// Xous helper function to determine the height of a glyph set
-pub fn glyph_to_height(glyph: GlyphSet) -> usize {
-    match glyph {
-        GlyphSet::Small => crate::fonts::small::MAX_HEIGHT as usize,
-        GlyphSet::Regular => crate::fonts::regular::MAX_HEIGHT as usize,
-        GlyphSet::Bold => crate::fonts::bold::MAX_HEIGHT as usize,
-        GlyphSet::Emoji => crate::fonts::emoji::MAX_HEIGHT as usize,
-    }
-}
-
-/// Xous helper to convert a specified GlyphSet into a Style
-use super::GlyphStyle;
-impl Into<GlyphStyle> for GlyphSet {
-    fn into(self) -> GlyphStyle {
-        match self {
-            GlyphSet::Emoji => GlyphStyle::Regular,
-            GlyphSet::Bold => GlyphStyle::Bold,
-            GlyphSet::Small => GlyphStyle::Small,
-            GlyphSet::Regular => GlyphStyle::Regular,
-        }
-    }
-}
-
 /// Error type for when a font has no glyph to match a grapheme cluster query
 #[derive(Debug, Clone)]
 pub struct GlyphNotFound;

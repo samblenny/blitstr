@@ -99,17 +99,34 @@ pub enum GlyphStyle {
     Bold = 2,
 }
 
-/// Convert style to number for use with register-based message passing sytems
-pub fn style_to_arg(s: GlyphStyle) -> usize {
-    s as usize
+/// Convert number to style for use with register-based message passing sytems
+impl From<usize> for GlyphStyle {
+    fn from(gs: usize) -> Self {
+        match gs {
+            0 => GlyphStyle::Small,
+            1 => GlyphStyle::Regular,
+            2 => GlyphStyle::Bold,
+            _ => GlyphStyle::Regular,
+        }
+    }
 }
 
-/// Convert number to style for use with register-based message passing sytems
-pub fn arg_to_style(arg: usize) -> GlyphStyle {
-    match arg {
-        0 => GlyphStyle::Small,
-        2 => GlyphStyle::Bold,
-        _ => GlyphStyle::Regular,
+/// Convert style to number for use with register-based message passing sytems
+impl Into<usize> for GlyphStyle {
+    fn into(self) -> usize {
+        match self {
+            GlyphStyle::Small => 0,
+            GlyphStyle::Regular => 1,
+            GlyphStyle::Bold => 2,
+        }
+    }
+}
+
+pub fn glyph_to_height_hint(g: GlyphStyle) -> usize {
+    match g {
+        GlyphStyle::Small => fonts::small::MAX_HEIGHT as usize,
+        GlyphStyle::Regular => fonts::regular::MAX_HEIGHT as usize,
+        GlyphStyle::Bold => fonts::regular::MAX_HEIGHT as usize,
     }
 }
 
@@ -344,10 +361,10 @@ mod tests {
 
     #[test]
     fn test_style_arg_conversions() {
-        assert_eq!(GlyphStyle::Small, arg_to_style(style_to_arg(GlyphStyle::Small)));
-        assert_eq!(GlyphStyle::Regular, arg_to_style(style_to_arg(GlyphStyle::Regular)));
-        assert_eq!(GlyphStyle::Bold, arg_to_style(style_to_arg(GlyphStyle::Bold)));
+        assert_eq!(GlyphStyle::Small, (GlyphStyle::Small as usize).into());
+        assert_eq!(GlyphStyle::Regular, (GlyphStyle::Regular as usize).into());
+        assert_eq!(GlyphStyle::Bold, (GlyphStyle::Bold as usize).into());
         let bad_arg = 255;
-        assert_eq!(GlyphStyle::Regular, arg_to_style(bad_arg));
+        assert_eq!(GlyphStyle::Regular, bad_arg.into());
     }
 }
