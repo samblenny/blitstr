@@ -33,7 +33,7 @@ impl GlyphHeader {
 }
 
 /// Available typeface glyph sets
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum GlyphSet {
     Emoji,
     Bold,

@@ -93,35 +93,52 @@ impl ClipRect {
 
 /// Style options for Latin script fonts
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Style {
+pub enum GlyphStyle {
     Small = 0,
     Regular = 1,
     Bold = 2,
 }
 
-/// Convert style to number for use with register-based message passing sytems
-pub fn style_to_arg(s: Style) -> usize {
-    s as usize
+/// Convert number to style for use with register-based message passing sytems
+impl From<usize> for GlyphStyle {
+    fn from(gs: usize) -> Self {
+        match gs {
+            0 => GlyphStyle::Small,
+            1 => GlyphStyle::Regular,
+            2 => GlyphStyle::Bold,
+            _ => GlyphStyle::Regular,
+        }
+    }
 }
 
-/// Convert number to style for use with register-based message passing sytems
-pub fn arg_to_style(arg: usize) -> Style {
-    match arg {
-        0 => Style::Small,
-        2 => Style::Bold,
-        _ => Style::Regular,
+/// Convert style to number for use with register-based message passing sytems
+impl Into<usize> for GlyphStyle {
+    fn into(self) -> usize {
+        match self {
+            GlyphStyle::Small => 0,
+            GlyphStyle::Regular => 1,
+            GlyphStyle::Bold => 2,
+        }
+    }
+}
+
+pub fn glyph_to_height_hint(g: GlyphStyle) -> usize {
+    match g {
+        GlyphStyle::Small => fonts::small::MAX_HEIGHT as usize,
+        GlyphStyle::Regular => fonts::regular::MAX_HEIGHT as usize,
+        GlyphStyle::Bold => fonts::regular::MAX_HEIGHT as usize,
     }
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: Style, s: &str) {
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str) {
     // Based on the requested style of Latin text, figure out a priority order
     // of glyph sets to use for looking up grapheme clusters
     let gs1 = GlyphSet::Emoji;
     let gs2 = match st {
-        Style::Bold => GlyphSet::Bold,
-        Style::Regular => GlyphSet::Regular,
-        Style::Small => GlyphSet::Small,
+        GlyphStyle::Bold => GlyphSet::Bold,
+        GlyphStyle::Regular => GlyphSet::Regular,
+        GlyphStyle::Small => GlyphSet::Small,
     };
     // Parse the string, consuming one grapheme cluster for each iteration of
     // the for loop. Since grapheme cluster length varies, s.len() is just an
@@ -344,10 +361,10 @@ mod tests {
 
     #[test]
     fn test_style_arg_conversions() {
-        assert_eq!(Style::Small, arg_to_style(style_to_arg(Style::Small)));
-        assert_eq!(Style::Regular, arg_to_style(style_to_arg(Style::Regular)));
-        assert_eq!(Style::Bold, arg_to_style(style_to_arg(Style::Bold)));
+        assert_eq!(GlyphStyle::Small, (GlyphStyle::Small as usize).into());
+        assert_eq!(GlyphStyle::Regular, (GlyphStyle::Regular as usize).into());
+        assert_eq!(GlyphStyle::Bold, (GlyphStyle::Bold as usize).into());
         let bad_arg = 255;
-        assert_eq!(Style::Regular, arg_to_style(bad_arg));
+        assert_eq!(GlyphStyle::Regular, bad_arg.into());
     }
 }
