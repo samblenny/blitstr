@@ -31,7 +31,7 @@ fn main() {
     // TODO: You need to provide a suitable implementation for your hardware
 }
 
-pub fn paint_short_greeting(fb: &mut FrBuf) {
+pub fn short_greeting(fb: &mut FrBuf) {
     // Clear entire screen
     let clip = ClipRect::full_screen();
     clear_region(fb, clip);
