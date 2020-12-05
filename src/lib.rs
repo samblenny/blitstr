@@ -122,11 +122,39 @@ impl Into<usize> for GlyphStyle {
     }
 }
 
+/// Estimate line-height for Latin script text in the given style
 pub fn glyph_to_height_hint(g: GlyphStyle) -> usize {
     match g {
         GlyphStyle::Small => fonts::small::MAX_HEIGHT as usize,
         GlyphStyle::Regular => fonts::regular::MAX_HEIGHT as usize,
         GlyphStyle::Bold => fonts::regular::MAX_HEIGHT as usize,
+    }
+}
+
+/// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
+pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
+    if clip.max.y > LINES
+        || clip.min.y >= clip.max.y
+        || clip.max.x > WIDTH
+        || clip.min.x >= clip.max.x
+    {
+        return;
+    }
+    // Calculate word alignment for destination buffer
+    let dest_low_word = clip.min.x >> 5;
+    let dest_high_word = clip.max.x >> 5;
+    let px_in_dest_low_word = 32 - (clip.min.x & 0x1f);
+    let px_in_dest_high_word = clip.max.x & 0x1f;
+    // Blit it
+    for y in clip.min.y..clip.max.y {
+        let base = y * WORDS_PER_LINE;
+        fb[base + dest_low_word] |= 0xffffffff << (32 - px_in_dest_low_word);
+        for w in dest_low_word + 1..dest_high_word {
+            fb[base + w] = 0xffffffff;
+        }
+        if dest_low_word < dest_high_word {
+            fb[base + dest_high_word] |= 0xffffffff >> (32 - px_in_dest_high_word);
+        }
     }
 }
 
@@ -293,33 +321,6 @@ fn xor_char(
         c.line_height = font_line_height;
     }
     return Ok(bytes_used);
-}
-
-/// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
-pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
-    if clip.max.y > LINES
-        || clip.min.y >= clip.max.y
-        || clip.max.x > WIDTH
-        || clip.min.x >= clip.max.x
-    {
-        return;
-    }
-    // Calculate word alignment for destination buffer
-    let dest_low_word = clip.min.x >> 5;
-    let dest_high_word = clip.max.x >> 5;
-    let px_in_dest_low_word = 32 - (clip.min.x & 0x1f);
-    let px_in_dest_high_word = clip.max.x & 0x1f;
-    // Blit it
-    for y in clip.min.y..clip.max.y {
-        let base = y * WORDS_PER_LINE;
-        fb[base + dest_low_word] |= 0xffffffff << (32 - px_in_dest_low_word);
-        for w in dest_low_word + 1..dest_high_word {
-            fb[base + w] = 0xffffffff;
-        }
-        if dest_low_word < dest_high_word {
-            fb[base + dest_high_word] |= 0xffffffff >> (32 - px_in_dest_high_word);
-        }
-    }
 }
 
 #[cfg(test)]
