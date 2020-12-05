@@ -1,0 +1,67 @@
+{
+  "comment": [
+    "Config for use with main.go. Before making changes here, see config_editor.rb."
+  ],
+  "glyphSets": [
+    {
+      "name": "Emoji",
+      "m3Seed": 0,
+      "sprites": "src_data/emoji_13_0.png",
+      "size": 32,
+      "cols": 16,
+      "gutter": 0,
+      "border": 0,
+      "legal": "src_data/twemoji_legal.txt",
+      "index": "src_data/emoji_13_0_index.txt",
+      "indexType": "txt-row-major",
+      "aliases": "src_data/emoji_13_0_aliases.txt",
+      "glyphTrim": "CJK",
+      "rustout": "../src/fonts/emoji.rs"
+    },
+    {
+      "name": "Bold",
+      "m3Seed": 0,
+      "sprites": "src_data/bold.png",
+      "size": 30,
+      "cols": 16,
+      "gutter": 2,
+      "border": 2,
+      "legal": "src_data/chicago_legal.txt",
+      "index": "src_data/latin_index.json",
+      "indexType": "json-grid-coord",
+      "aliases": "src_data/latin_aliases.txt",
+      "glyphTrim": "proportional",
+      "rustout": "../src/fonts/bold.rs"
+    },
+    {
+      "name": "Regular",
+      "m3Seed": 0,
+      "sprites": "src_data/regular.png",
+      "size": 30,
+      "cols": 16,
+      "gutter": 2,
+      "border": 2,
+      "legal": "src_data/geneva_legal.txt",
+      "index": "src_data/latin_index.json",
+      "indexType": "json-grid-coord",
+      "aliases": "src_data/latin_aliases.txt",
+      "glyphTrim": "proportional",
+      "rustout": "../src/fonts/regular.rs"
+    },
+    {
+      "name": "Small",
+      "m3Seed": 0,
+      "sprites": "src_data/small.png",
+      "size": 24,
+      "cols": 16,
+      "gutter": 2,
+      "border": 2,
+      "legal": "src_data/geneva_legal.txt",
+      "index": "src_data/latin_index.json",
+      "indexType": "json-grid-coord",
+      "aliases": "src_data/latin_aliases.txt",
+      "glyphTrim": "proportional",
+      "rustout": "../src/fonts/small.rs"
+    }
+  ]
+}

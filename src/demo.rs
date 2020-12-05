@@ -42,3 +42,20 @@ pub fn sample_text(fb: &mut FrBuf) {
     // Blit the string
     paint_str(fb, clip, c, GlyphStyle::Small, wrap);
 }
+
+/// Short example to greet world + cat
+pub fn short_greeting(fb: &mut FrBuf) {
+    // Clear entire screen
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+
+    // Prepare to paint with small margin of whitespace around edges of screen
+    let clip = ClipRect::padded_screen();
+
+    // Get a text cursor positioned to begin painting from clip rectangle's top left corner
+    let cursor = &mut Cursor::from_top_left_of(clip);
+
+    // Paint two lines of text within the clip rectangle, reusing the same cursor
+    paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, world!\n");
+    paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, 😸!\n");
+}

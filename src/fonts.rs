@@ -14,6 +14,7 @@ pub mod emoji;
 pub mod regular;
 pub mod small;
 
+use super::m3hash;
 use core::fmt;
 
 /// Holds header data for a font glyph
@@ -102,35 +103,10 @@ pub fn small_data(index: usize) -> u32 {
 }
 
 /// Compute Murmur3 hash function of the first limit codepoints of a string,
-/// using each char as a u32 block.
+/// using each char as a u32 block. This wrapper function exists to provide a
+/// stable font::murmur3(...) internal API that the font codegen system can use
+/// to calculate grapheme cluster hashes in the fonts/*.rs font files.
 /// Returns: (murmur3 hash, how many bytes of key were hashed (e.g. key[..n]))
 pub fn murmur3(key: &str, seed: u32, limit: u32) -> (u32, usize) {
-    let mut h = seed;
-    let mut k;
-    // Hash each character as its own u32 block
-    let mut n = 0;
-    let mut bytes_hashed = key.len();
-    for (i, c) in key.char_indices() {
-        if n >= limit {
-            bytes_hashed = i;
-            break;
-        }
-        k = c as u32;
-        k = k.wrapping_mul(0xcc9e2d51);
-        k = k.rotate_left(15);
-        k = k.wrapping_mul(0x1b873593);
-        h ^= k;
-        h = h.rotate_left(13);
-        h = h.wrapping_mul(5);
-        h = h.wrapping_add(0xe6546b64);
-        n += 1;
-    }
-    h ^= bytes_hashed as u32;
-    // Finalize with avalanche
-    h ^= h >> 16;
-    h = h.wrapping_mul(0x85ebca6b);
-    h ^= h >> 13;
-    h = h.wrapping_mul(0xc2b2ae35);
-    h ^= h >> 16;
-    (h, bytes_hashed)
+    m3hash::grapheme_cluster(key, seed, limit)
 }
