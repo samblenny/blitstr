@@ -51,7 +51,7 @@ pub fn short_greeting(fb: &mut FrBuf) {
 If you modify the WebAssembly demo (see below) to run the example code above,
 the top of the wasm_demo screen should look like this:
 
-![paint_short_greeting wasm demo screenshot](short_greeting.png)
+![paint_short_greeting wasm demo screenshot](doc/short_greeting.png)
 
 The `GlyphStyle` argument to `paint_str()` is used for resolving ambiguity
 about which glyph variant blitstr should use to paint a grapheme cluster when
