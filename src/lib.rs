@@ -58,7 +58,6 @@ impl Cursor {
 /// Coordinate System Notes:
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
-/// - (WIDTH, LINES) is bottom right
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ClipRect {
     pub min: Pt,
@@ -80,11 +79,11 @@ impl ClipRect {
         }
         ClipRect { min, max }
     }
-    /// Make a rectangle of the full screen size
+    /// Make a rectangle of the full screen size (0,0)..(WIDTH,LINES)
     pub fn full_screen() -> ClipRect {
         ClipRect::new(0, 0, WIDTH, LINES)
     }
-    /// Make a rectangle of the screen size minus padding
+    /// Make a rectangle of the screen size minus padding (6,6)..(WIDTH-6,LINES-6)
     pub fn padded_screen() -> ClipRect {
         let pad = 6;
         ClipRect::new(pad, pad, WIDTH - pad, LINES - pad)
