@@ -162,4 +162,18 @@ const OFFSET_{{$k.Name}}: [usize; {{len $dex}}] = [
 ///  yOffset: Vertical offset (pixels downward from top of line) to position
 ///     glyph pattern properly relative to text baseline
 pub const DATA: [u32; {{.GS.DataLen}}] = [
-{{.GS.Code}}];`
+{{.GS.Code}}];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // If this fails, there's probably a hash collision, so change the seed.
+    fn test_hashes_unique_and_sorted() {
+{{- range $_, $k := .GS.IndexKeys }}
+        for i in 0..HASH_{{$k.Name}}.len()-1 {
+            assert!(HASH_{{$k.Name}}[i] < HASH_{{$k.Name}}[i+1]);
+        }{{ end }}
+    }
+}`

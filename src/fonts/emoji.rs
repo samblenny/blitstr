@@ -24033,3 +24033,88 @@ pub const DATA: [u32; 91228] = [
     0x6d9002fb, 0x6f800f92, 0x4bc01249, 0x24801249, 0x24000000, 0x00059249, 0x25849249, 0x24c80000,
     0x096c9249, 0x2d249249, 0x26400000, 0x4b649249, 0x69249249, 0x32000002, 0x5924924b, 0x08000009,
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // If this fails, there's probably a hash collision, so change the seed.
+    fn test_hashes_unique_and_sorted() {
+        for i in 0..HASH_BASIC_LATIN.len()-1 {
+            assert!(HASH_BASIC_LATIN[i] < HASH_BASIC_LATIN[i+1]);
+        }
+        for i in 0..HASH_LATIN_1_SUPPLEMENT.len()-1 {
+            assert!(HASH_LATIN_1_SUPPLEMENT[i] < HASH_LATIN_1_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_GENERAL_PUNCTUATION.len()-1 {
+            assert!(HASH_GENERAL_PUNCTUATION[i] < HASH_GENERAL_PUNCTUATION[i+1]);
+        }
+        for i in 0..HASH_LETTERLIKE_SYMBOLS.len()-1 {
+            assert!(HASH_LETTERLIKE_SYMBOLS[i] < HASH_LETTERLIKE_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_ARROWS.len()-1 {
+            assert!(HASH_ARROWS[i] < HASH_ARROWS[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_TECHNICAL.len()-1 {
+            assert!(HASH_MISCELLANEOUS_TECHNICAL[i] < HASH_MISCELLANEOUS_TECHNICAL[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_ALPHANUMERICS.len()-1 {
+            assert!(HASH_ENCLOSED_ALPHANUMERICS[i] < HASH_ENCLOSED_ALPHANUMERICS[i+1]);
+        }
+        for i in 0..HASH_GEOMETRIC_SHAPES.len()-1 {
+            assert!(HASH_GEOMETRIC_SHAPES[i] < HASH_GEOMETRIC_SHAPES[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_SYMBOLS.len()-1 {
+            assert!(HASH_MISCELLANEOUS_SYMBOLS[i] < HASH_MISCELLANEOUS_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_DINGBATS.len()-1 {
+            assert!(HASH_DINGBATS[i] < HASH_DINGBATS[i+1]);
+        }
+        for i in 0..HASH_SUPPLEMENTAL_ARROWS_B.len()-1 {
+            assert!(HASH_SUPPLEMENTAL_ARROWS_B[i] < HASH_SUPPLEMENTAL_ARROWS_B[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_SYMBOLS_AND_ARROWS.len()-1 {
+            assert!(HASH_MISCELLANEOUS_SYMBOLS_AND_ARROWS[i] < HASH_MISCELLANEOUS_SYMBOLS_AND_ARROWS[i+1]);
+        }
+        for i in 0..HASH_CJK_SYMBOLS_AND_PUNCTUATION.len()-1 {
+            assert!(HASH_CJK_SYMBOLS_AND_PUNCTUATION[i] < HASH_CJK_SYMBOLS_AND_PUNCTUATION[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_CJK_LETTERS_AND_MONTHS.len()-1 {
+            assert!(HASH_ENCLOSED_CJK_LETTERS_AND_MONTHS[i] < HASH_ENCLOSED_CJK_LETTERS_AND_MONTHS[i+1]);
+        }
+        for i in 0..HASH_PRIVATE_USE_AREA.len()-1 {
+            assert!(HASH_PRIVATE_USE_AREA[i] < HASH_PRIVATE_USE_AREA[i+1]);
+        }
+        for i in 0..HASH_MAHJONG_TILES.len()-1 {
+            assert!(HASH_MAHJONG_TILES[i] < HASH_MAHJONG_TILES[i+1]);
+        }
+        for i in 0..HASH_PLAYING_CARDS.len()-1 {
+            assert!(HASH_PLAYING_CARDS[i] < HASH_PLAYING_CARDS[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_ALPHANUMERIC_SUPPLEMENT.len()-1 {
+            assert!(HASH_ENCLOSED_ALPHANUMERIC_SUPPLEMENT[i] < HASH_ENCLOSED_ALPHANUMERIC_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_IDEOGRAPHIC_SUPPLEMENT.len()-1 {
+            assert!(HASH_ENCLOSED_IDEOGRAPHIC_SUPPLEMENT[i] < HASH_ENCLOSED_IDEOGRAPHIC_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS.len()-1 {
+            assert!(HASH_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS[i] < HASH_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS[i+1]);
+        }
+        for i in 0..HASH_EMOTICONS.len()-1 {
+            assert!(HASH_EMOTICONS[i] < HASH_EMOTICONS[i+1]);
+        }
+        for i in 0..HASH_TRANSPORT_AND_MAP_SYMBOLS.len()-1 {
+            assert!(HASH_TRANSPORT_AND_MAP_SYMBOLS[i] < HASH_TRANSPORT_AND_MAP_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_GEOMETRIC_SHAPES_EXTENDED.len()-1 {
+            assert!(HASH_GEOMETRIC_SHAPES_EXTENDED[i] < HASH_GEOMETRIC_SHAPES_EXTENDED[i+1]);
+        }
+        for i in 0..HASH_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS.len()-1 {
+            assert!(HASH_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS[i] < HASH_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS[i+1]);
+        }
+        for i in 0..HASH_SYMBOLS_AND_PICTOGRAPHS_EXTENDED_A.len()-1 {
+            assert!(HASH_SYMBOLS_AND_PICTOGRAPHS_EXTENDED_A[i] < HASH_SYMBOLS_AND_PICTOGRAPHS_EXTENDED_A[i+1]);
+        }
+    }
+}

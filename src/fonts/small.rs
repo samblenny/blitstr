@@ -1141,3 +1141,31 @@ pub const DATA: [u32; 1071] = [
     0x00121402, 0x00c00030, 0x003f000f, 0xc00f3c03, 0xcf03ccf0, 0xf33cfcff, 0xff3ffff3, 0xfffcff3f,
     0xff0fffc0, 0xf3c03cf0, 0x03f000fc, 0x000c0003, 0x00000000,
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // If this fails, there's probably a hash collision, so change the seed.
+    fn test_hashes_unique_and_sorted() {
+        for i in 0..HASH_BASIC_LATIN.len()-1 {
+            assert!(HASH_BASIC_LATIN[i] < HASH_BASIC_LATIN[i+1]);
+        }
+        for i in 0..HASH_LATIN_1_SUPPLEMENT.len()-1 {
+            assert!(HASH_LATIN_1_SUPPLEMENT[i] < HASH_LATIN_1_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_LATIN_EXTENDED_A.len()-1 {
+            assert!(HASH_LATIN_EXTENDED_A[i] < HASH_LATIN_EXTENDED_A[i+1]);
+        }
+        for i in 0..HASH_GENERAL_PUNCTUATION.len()-1 {
+            assert!(HASH_GENERAL_PUNCTUATION[i] < HASH_GENERAL_PUNCTUATION[i+1]);
+        }
+        for i in 0..HASH_CURRENCY_SYMBOLS.len()-1 {
+            assert!(HASH_CURRENCY_SYMBOLS[i] < HASH_CURRENCY_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_SPECIALS.len()-1 {
+            assert!(HASH_SPECIALS[i] < HASH_SPECIALS[i+1]);
+        }
+    }
+}
