@@ -10,20 +10,45 @@ pub mod small;
 use super::m3hash;
 use core::fmt;
 
-/// Holds header data for a font glyph
-pub struct GlyphHeader {
-    pub w: usize,
-    pub h: usize,
-    pub y_offset: usize,
+/// Holds an offset into the glyph data array of a particular glyph set
+#[derive(Copy, Clone, Debug)]
+pub enum GlyphData {
+    Emoji(usize),
+    Bold(usize),
+    Regular(usize),
+    Small(usize),
 }
-impl GlyphHeader {
+impl GlyphData {
     /// Unpack glyph header of format: (w:u8)<<16 | (h:u8)<<8 | yOffset:u8
-    pub fn new(header: u32) -> GlyphHeader {
+    pub fn header(self) -> GlyphHeader {
+        let header = match self {
+            GlyphData::Emoji(offset) => emoji::DATA[offset],
+            GlyphData::Bold(offset) => bold::DATA[offset],
+            GlyphData::Regular(offset) => regular::DATA[offset],
+            GlyphData::Small(offset) => small::DATA[offset],
+        };
         let w = ((header << 8) >> 24) as usize;
         let h = ((header << 16) >> 24) as usize;
         let y_offset = (header & 0x000000ff) as usize;
         GlyphHeader { w, h, y_offset }
     }
+
+    /// Unpack the nth pixel data word following the header
+    pub fn nth_word(self, n: usize) -> u32 {
+        match self {
+            GlyphData::Emoji(offset) => emoji::DATA[offset + n],
+            GlyphData::Bold(offset) => bold::DATA[offset + n],
+            GlyphData::Regular(offset) => regular::DATA[offset + n],
+            GlyphData::Small(offset) => small::DATA[offset + n],
+        }
+    }
+}
+
+/// Holds header data for a font glyph
+pub struct GlyphHeader {
+    pub w: usize,
+    pub h: usize,
+    pub y_offset: usize,
 }
 
 /// Available typeface glyph sets
@@ -37,62 +62,11 @@ pub enum GlyphSet {
 
 /// Error type for when a font has no glyph to match a grapheme cluster query
 #[derive(Debug, Clone)]
-pub struct GlyphNotFound;
-impl fmt::Display for GlyphNotFound {
+pub struct NoGlyphErr;
+impl fmt::Display for NoGlyphErr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Font has no glyph for requested grapheme cluster")
     }
-}
-
-/// Abstraction for working with typeface glyph sets
-#[derive(Copy, Clone)]
-pub struct Font {
-    pub glyph_pattern_offset: GlyphPatternOffsetFnPtr,
-    pub glyph_data: GlyphDataFnPtr,
-}
-pub type GlyphPatternOffsetFnPtr = fn(&str) -> Result<(usize, usize), GlyphNotFound>;
-pub type GlyphDataFnPtr = fn(usize) -> u32;
-impl Font {
-    pub fn new(gs: GlyphSet) -> Font {
-        match gs {
-            GlyphSet::Emoji => Font {
-                glyph_pattern_offset: emoji::get_blit_pattern_offset,
-                glyph_data: emoji_data,
-            },
-            GlyphSet::Bold => Font {
-                glyph_pattern_offset: bold::get_blit_pattern_offset,
-                glyph_data: bold_data,
-            },
-            GlyphSet::Regular => Font {
-                glyph_pattern_offset: regular::get_blit_pattern_offset,
-                glyph_data: regular_data,
-            },
-            GlyphSet::Small => Font {
-                glyph_pattern_offset: small::get_blit_pattern_offset,
-                glyph_data: small_data,
-            },
-        }
-    }
-}
-
-/// Get word of packed glyph data for emoji
-pub fn emoji_data(index: usize) -> u32 {
-    emoji::DATA[index]
-}
-
-/// Get word of packed glyph data for bold
-pub fn bold_data(index: usize) -> u32 {
-    bold::DATA[index]
-}
-
-/// Get word of packed glyph data for regular
-pub fn regular_data(index: usize) -> u32 {
-    regular::DATA[index]
-}
-
-/// Get word of packed glyph data for small
-pub fn small_data(index: usize) -> u32 {
-    small::DATA[index]
 }
 
 /// Compute Murmur3 hash function of the first limit codepoints of a string,

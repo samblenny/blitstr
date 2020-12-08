@@ -16,6 +16,8 @@
 #![forbid(unsafe_code)]
 #![allow(dead_code)]
 
+use super::{GlyphData, NoGlyphErr};
+
 /// Maximum height of glyph patterns in this bitmap typeface.
 /// This will be true: h + y_offset <= MAX_HEIGHT
 pub const MAX_HEIGHT: u8 = 24;
@@ -30,58 +32,58 @@ pub const M3_SEED: u32 = 0;
 /// for Unicode blocks included in this font.
 ///
 /// Returns: Result<(blit pattern offset into DATA, bytes of cluster used by match)>
-pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::GlyphNotFound> {
+pub fn get_blit_pattern_offset(cluster: &str) -> Result<(GlyphData, usize), NoGlyphErr> {
     let first_char: u32;
     match cluster.chars().next() {
         Some(c) => first_char = c as u32,
-        None => return Err(super::GlyphNotFound),
+        None => return Err(NoGlyphErr),
     }
     return match first_char {
         0x0..=0x7F => {
             if let Some((offset, bytes_used)) = find_basic_latin(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_basic_latin(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x80..=0xFF => {
             if let Some((offset, bytes_used)) = find_latin_1_supplement(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x100..=0x17F => {
             if let Some((offset, bytes_used)) = find_latin_extended_a(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2000..=0x206F => {
             if let Some((offset, bytes_used)) = find_general_punctuation(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x20A0..=0x20CF => {
             if let Some((offset, bytes_used)) = find_currency_symbols(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0xFFF0..=0xFFFF => {
             if let Some((offset, bytes_used)) = find_specials(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
-        _ => Err(super::GlyphNotFound),
+        _ => Err(super::NoGlyphErr),
     };
 }
 

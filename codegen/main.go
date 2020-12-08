@@ -37,9 +37,8 @@ func codegen() {
 		// Make rust code for the blit pattern DATA array, plus an index list
 		gs := NewGlyphSetFrom(pl, f.M3Seed)
 		gs.AddAliasesToIndex(f.AliasList, f.M3Seed)
-		data := RenderDataTemplate(gs, f.M3Seed)
 		// Generate rust source code and write it to a file
-		code := RenderFontFileTemplate(f, data)
+		code := RenderFontFileTemplate(f, gs, f.M3Seed)
 		fmt.Println("Writing to", f.RustOut)
 		ioutil.WriteFile(f.RustOut, []byte(code), 0644)
 	}
