@@ -26,6 +26,8 @@
 #![forbid(unsafe_code)]
 #![allow(dead_code)]
 
+use super::{GlyphData, NoGlyphErr};
+
 /// Maximum height of glyph patterns in this bitmap typeface.
 /// This will be true: h + y_offset <= MAX_HEIGHT
 pub const MAX_HEIGHT: u8 = 32;
@@ -40,261 +42,261 @@ pub const M3_SEED: u32 = 0;
 /// for Unicode blocks included in this font.
 ///
 /// Returns: Result<(blit pattern offset into DATA, bytes of cluster used by match)>
-pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::GlyphNotFound> {
+pub fn get_blit_pattern_offset(cluster: &str) -> Result<(GlyphData, usize), NoGlyphErr> {
     let first_char: u32;
     match cluster.chars().next() {
         Some(c) => first_char = c as u32,
-        None => return Err(super::GlyphNotFound),
+        None => return Err(NoGlyphErr),
     }
     return match first_char {
         0x0..=0x7F => {
             if let Some((offset, bytes_used)) = find_basic_latin(cluster, 3) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_basic_latin(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x80..=0xFF => {
             if let Some((offset, bytes_used)) = find_latin_1_supplement(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_latin_1_supplement(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2000..=0x206F => {
             if let Some((offset, bytes_used)) = find_general_punctuation(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_general_punctuation(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2100..=0x214F => {
             if let Some((offset, bytes_used)) = find_letterlike_symbols(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_letterlike_symbols(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2190..=0x21FF => {
             if let Some((offset, bytes_used)) = find_arrows(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_arrows(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2300..=0x23FF => {
             if let Some((offset, bytes_used)) = find_miscellaneous_technical(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_technical(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2460..=0x24FF => {
             if let Some((offset, bytes_used)) = find_enclosed_alphanumerics(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_enclosed_alphanumerics(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x25A0..=0x25FF => {
             if let Some((offset, bytes_used)) = find_geometric_shapes(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_geometric_shapes(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2600..=0x26FF => {
             if let Some((offset, bytes_used)) = find_miscellaneous_symbols(cluster, 5) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2700..=0x27BF => {
             if let Some((offset, bytes_used)) = find_dingbats(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_dingbats(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2900..=0x297F => {
             if let Some((offset, bytes_used)) = find_supplemental_arrows_b(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_supplemental_arrows_b(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2B00..=0x2BFF => {
             if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_arrows(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_arrows(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x3000..=0x303F => {
             if let Some((offset, bytes_used)) = find_cjk_symbols_and_punctuation(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_cjk_symbols_and_punctuation(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x3200..=0x32FF => {
             if let Some((offset, bytes_used)) = find_enclosed_cjk_letters_and_months(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_enclosed_cjk_letters_and_months(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0xE000..=0xF8FF => {
             if let Some((offset, bytes_used)) = find_private_use_area(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F000..=0x1F02F => {
             if let Some((offset, bytes_used)) = find_mahjong_tiles(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_mahjong_tiles(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F0A0..=0x1F0FF => {
             if let Some((offset, bytes_used)) = find_playing_cards(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F100..=0x1F1FF => {
             if let Some((offset, bytes_used)) = find_enclosed_alphanumeric_supplement(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_enclosed_alphanumeric_supplement(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F200..=0x1F2FF => {
             if let Some((offset, bytes_used)) = find_enclosed_ideographic_supplement(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_enclosed_ideographic_supplement(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F300..=0x1F5FF => {
             if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 8) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 7) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 6) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 5) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 4) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 3) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_miscellaneous_symbols_and_pictographs(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F600..=0x1F64F => {
             if let Some((offset, bytes_used)) = find_emoticons(cluster, 5) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_emoticons(cluster, 4) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_emoticons(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_emoticons(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F680..=0x1F6FF => {
             if let Some((offset, bytes_used)) = find_transport_and_map_symbols(cluster, 5) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_transport_and_map_symbols(cluster, 4) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_transport_and_map_symbols(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_transport_and_map_symbols(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F780..=0x1F7FF => {
             if let Some((offset, bytes_used)) = find_geometric_shapes_extended(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1F900..=0x1F9FF => {
             if let Some((offset, bytes_used)) = find_supplemental_symbols_and_pictographs(cluster, 7) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_supplemental_symbols_and_pictographs(cluster, 5) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_supplemental_symbols_and_pictographs(cluster, 4) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_supplemental_symbols_and_pictographs(cluster, 3) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_supplemental_symbols_and_pictographs(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_supplemental_symbols_and_pictographs(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x1FA70..=0x1FAFF => {
             if let Some((offset, bytes_used)) = find_symbols_and_pictographs_extended_a(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Emoji(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
-        _ => Err(super::GlyphNotFound),
+        _ => Err(super::NoGlyphErr),
     };
 }
 
@@ -24033,3 +24035,88 @@ pub const DATA: [u32; 91228] = [
     0x6d9002fb, 0x6f800f92, 0x4bc01249, 0x24801249, 0x24000000, 0x00059249, 0x25849249, 0x24c80000,
     0x096c9249, 0x2d249249, 0x26400000, 0x4b649249, 0x69249249, 0x32000002, 0x5924924b, 0x08000009,
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // If this fails, there's probably a hash collision, so change the seed.
+    fn test_hashes_unique_and_sorted() {
+        for i in 0..HASH_BASIC_LATIN.len()-1 {
+            assert!(HASH_BASIC_LATIN[i] < HASH_BASIC_LATIN[i+1]);
+        }
+        for i in 0..HASH_LATIN_1_SUPPLEMENT.len()-1 {
+            assert!(HASH_LATIN_1_SUPPLEMENT[i] < HASH_LATIN_1_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_GENERAL_PUNCTUATION.len()-1 {
+            assert!(HASH_GENERAL_PUNCTUATION[i] < HASH_GENERAL_PUNCTUATION[i+1]);
+        }
+        for i in 0..HASH_LETTERLIKE_SYMBOLS.len()-1 {
+            assert!(HASH_LETTERLIKE_SYMBOLS[i] < HASH_LETTERLIKE_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_ARROWS.len()-1 {
+            assert!(HASH_ARROWS[i] < HASH_ARROWS[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_TECHNICAL.len()-1 {
+            assert!(HASH_MISCELLANEOUS_TECHNICAL[i] < HASH_MISCELLANEOUS_TECHNICAL[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_ALPHANUMERICS.len()-1 {
+            assert!(HASH_ENCLOSED_ALPHANUMERICS[i] < HASH_ENCLOSED_ALPHANUMERICS[i+1]);
+        }
+        for i in 0..HASH_GEOMETRIC_SHAPES.len()-1 {
+            assert!(HASH_GEOMETRIC_SHAPES[i] < HASH_GEOMETRIC_SHAPES[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_SYMBOLS.len()-1 {
+            assert!(HASH_MISCELLANEOUS_SYMBOLS[i] < HASH_MISCELLANEOUS_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_DINGBATS.len()-1 {
+            assert!(HASH_DINGBATS[i] < HASH_DINGBATS[i+1]);
+        }
+        for i in 0..HASH_SUPPLEMENTAL_ARROWS_B.len()-1 {
+            assert!(HASH_SUPPLEMENTAL_ARROWS_B[i] < HASH_SUPPLEMENTAL_ARROWS_B[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_SYMBOLS_AND_ARROWS.len()-1 {
+            assert!(HASH_MISCELLANEOUS_SYMBOLS_AND_ARROWS[i] < HASH_MISCELLANEOUS_SYMBOLS_AND_ARROWS[i+1]);
+        }
+        for i in 0..HASH_CJK_SYMBOLS_AND_PUNCTUATION.len()-1 {
+            assert!(HASH_CJK_SYMBOLS_AND_PUNCTUATION[i] < HASH_CJK_SYMBOLS_AND_PUNCTUATION[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_CJK_LETTERS_AND_MONTHS.len()-1 {
+            assert!(HASH_ENCLOSED_CJK_LETTERS_AND_MONTHS[i] < HASH_ENCLOSED_CJK_LETTERS_AND_MONTHS[i+1]);
+        }
+        for i in 0..HASH_PRIVATE_USE_AREA.len()-1 {
+            assert!(HASH_PRIVATE_USE_AREA[i] < HASH_PRIVATE_USE_AREA[i+1]);
+        }
+        for i in 0..HASH_MAHJONG_TILES.len()-1 {
+            assert!(HASH_MAHJONG_TILES[i] < HASH_MAHJONG_TILES[i+1]);
+        }
+        for i in 0..HASH_PLAYING_CARDS.len()-1 {
+            assert!(HASH_PLAYING_CARDS[i] < HASH_PLAYING_CARDS[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_ALPHANUMERIC_SUPPLEMENT.len()-1 {
+            assert!(HASH_ENCLOSED_ALPHANUMERIC_SUPPLEMENT[i] < HASH_ENCLOSED_ALPHANUMERIC_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_ENCLOSED_IDEOGRAPHIC_SUPPLEMENT.len()-1 {
+            assert!(HASH_ENCLOSED_IDEOGRAPHIC_SUPPLEMENT[i] < HASH_ENCLOSED_IDEOGRAPHIC_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS.len()-1 {
+            assert!(HASH_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS[i] < HASH_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS[i+1]);
+        }
+        for i in 0..HASH_EMOTICONS.len()-1 {
+            assert!(HASH_EMOTICONS[i] < HASH_EMOTICONS[i+1]);
+        }
+        for i in 0..HASH_TRANSPORT_AND_MAP_SYMBOLS.len()-1 {
+            assert!(HASH_TRANSPORT_AND_MAP_SYMBOLS[i] < HASH_TRANSPORT_AND_MAP_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_GEOMETRIC_SHAPES_EXTENDED.len()-1 {
+            assert!(HASH_GEOMETRIC_SHAPES_EXTENDED[i] < HASH_GEOMETRIC_SHAPES_EXTENDED[i+1]);
+        }
+        for i in 0..HASH_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS.len()-1 {
+            assert!(HASH_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS[i] < HASH_SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS[i+1]);
+        }
+        for i in 0..HASH_SYMBOLS_AND_PICTOGRAPHS_EXTENDED_A.len()-1 {
+            assert!(HASH_SYMBOLS_AND_PICTOGRAPHS_EXTENDED_A[i] < HASH_SYMBOLS_AND_PICTOGRAPHS_EXTENDED_A[i+1]);
+        }
+    }
+}

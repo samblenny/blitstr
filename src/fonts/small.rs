@@ -16,6 +16,8 @@
 #![forbid(unsafe_code)]
 #![allow(dead_code)]
 
+use super::{GlyphData, NoGlyphErr};
+
 /// Maximum height of glyph patterns in this bitmap typeface.
 /// This will be true: h + y_offset <= MAX_HEIGHT
 pub const MAX_HEIGHT: u8 = 24;
@@ -30,58 +32,58 @@ pub const M3_SEED: u32 = 0;
 /// for Unicode blocks included in this font.
 ///
 /// Returns: Result<(blit pattern offset into DATA, bytes of cluster used by match)>
-pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::GlyphNotFound> {
+pub fn get_blit_pattern_offset(cluster: &str) -> Result<(GlyphData, usize), NoGlyphErr> {
     let first_char: u32;
     match cluster.chars().next() {
         Some(c) => first_char = c as u32,
-        None => return Err(super::GlyphNotFound),
+        None => return Err(NoGlyphErr),
     }
     return match first_char {
         0x0..=0x7F => {
             if let Some((offset, bytes_used)) = find_basic_latin(cluster, 2) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else if let Some((offset, bytes_used)) = find_basic_latin(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x80..=0xFF => {
             if let Some((offset, bytes_used)) = find_latin_1_supplement(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x100..=0x17F => {
             if let Some((offset, bytes_used)) = find_latin_extended_a(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x2000..=0x206F => {
             if let Some((offset, bytes_used)) = find_general_punctuation(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0x20A0..=0x20CF => {
             if let Some((offset, bytes_used)) = find_currency_symbols(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         0xFFF0..=0xFFFF => {
             if let Some((offset, bytes_used)) = find_specials(cluster, 1) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::Small(offset), bytes_used))
             } else {
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
-        _ => Err(super::GlyphNotFound),
+        _ => Err(super::NoGlyphErr),
     };
 }
 
@@ -1141,3 +1143,31 @@ pub const DATA: [u32; 1071] = [
     0x00121402, 0x00c00030, 0x003f000f, 0xc00f3c03, 0xcf03ccf0, 0xf33cfcff, 0xff3ffff3, 0xfffcff3f,
     0xff0fffc0, 0xf3c03cf0, 0x03f000fc, 0x000c0003, 0x00000000,
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // If this fails, there's probably a hash collision, so change the seed.
+    fn test_hashes_unique_and_sorted() {
+        for i in 0..HASH_BASIC_LATIN.len()-1 {
+            assert!(HASH_BASIC_LATIN[i] < HASH_BASIC_LATIN[i+1]);
+        }
+        for i in 0..HASH_LATIN_1_SUPPLEMENT.len()-1 {
+            assert!(HASH_LATIN_1_SUPPLEMENT[i] < HASH_LATIN_1_SUPPLEMENT[i+1]);
+        }
+        for i in 0..HASH_LATIN_EXTENDED_A.len()-1 {
+            assert!(HASH_LATIN_EXTENDED_A[i] < HASH_LATIN_EXTENDED_A[i+1]);
+        }
+        for i in 0..HASH_GENERAL_PUNCTUATION.len()-1 {
+            assert!(HASH_GENERAL_PUNCTUATION[i] < HASH_GENERAL_PUNCTUATION[i+1]);
+        }
+        for i in 0..HASH_CURRENCY_SYMBOLS.len()-1 {
+            assert!(HASH_CURRENCY_SYMBOLS[i] < HASH_CURRENCY_SYMBOLS[i+1]);
+        }
+        for i in 0..HASH_SPECIALS.len()-1 {
+            assert!(HASH_SPECIALS[i] < HASH_SPECIALS[i+1]);
+        }
+    }
+}

@@ -5,10 +5,10 @@
 
 use crate::cliprect::ClipRect;
 use crate::cursor::Cursor;
-use crate::glyphstyle::GlyphStyle;
 use crate::fonts;
+use crate::fonts::{GlyphSet, NoGlyphErr};
 use crate::framebuffer::{FrBuf, LINES, WIDTH, WORDS_PER_LINE};
-use crate::fonts::{Font, GlyphHeader, GlyphSet};
+use crate::glyphstyle::GlyphStyle;
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
 pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
@@ -120,14 +120,18 @@ fn xor_char(
     c: &mut Cursor,
     cluster: &str,
     gs: GlyphSet,
-) -> Result<usize, fonts::GlyphNotFound> {
+) -> Result<usize, NoGlyphErr> {
     if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
         return Ok(0);
     }
     // Look up glyph for grapheme cluster and unpack its header
-    let f = Font::new(gs);
-    let (gpo, bytes_used) = (f.glyph_pattern_offset)(cluster)?;
-    let gh = GlyphHeader::new((f.glyph_data)(gpo));
+    let (glyph_data, bytes_used) = match gs {
+        GlyphSet::Emoji => fonts::emoji::get_blit_pattern_offset(cluster)?,
+        GlyphSet::Bold => fonts::bold::get_blit_pattern_offset(cluster)?,
+        GlyphSet::Regular => fonts::regular::get_blit_pattern_offset(cluster)?,
+        GlyphSet::Small => fonts::small::get_blit_pattern_offset(cluster)?,
+    };
+    let gh = glyph_data.header();
     if gh.w > 32 {
         return Ok(0);
     }
@@ -167,9 +171,9 @@ fn xor_char(
         // the pattern. It may also include pixels for the next row, or, in the
         // case of the last row, it may include padding bits.
         let px_offset = y * gh.w;
-        let low_word = gpo + 1 + (px_offset >> 5);
+        let low_word = 1 + (px_offset >> 5);
         let px_in_low_word = 32 - (px_offset & 0x1f);
-        let mut pattern = (f.glyph_data)(low_word);
+        let mut pattern = glyph_data.nth_word(low_word);
         // Mask and align pixels from low word of glyph data array
         pattern <<= 32 - px_in_low_word;
         pattern >>= 32 - gh.w;
@@ -177,7 +181,7 @@ fn xor_char(
             // When pixels for this row span two words in the glyph data array,
             // get pixels from the high word too
             let px_in_high_word = gh.w - px_in_low_word;
-            let mut pattern_h = (f.glyph_data)(low_word + 1);
+            let mut pattern_h = glyph_data.nth_word(low_word + 1);
             pattern_h >>= 32 - px_in_high_word;
             pattern |= pattern_h;
         }

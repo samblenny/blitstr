@@ -15,15 +15,9 @@ func RenderUsageTemplate(confirm string, fonts []FontSpec) string {
 	return renderTemplate(usageTemplate, "usage", context)
 }
 
-// Render a rust source code fragment for u32 blit pattern data words
-func RenderDataTemplate(gs GlyphSet, m3Seed uint32) string {
-	context := dataTemplateContext{gs, m3Seed}
-	return renderTemplate(dataTemplate, "data", context)
-}
-
 // Render rust source code for font file with index functions and static arrays
-func RenderFontFileTemplate(f FontSpec, data string) string {
-	context := fontFileTemplateContext{f, data}
+func RenderFontFileTemplate(f FontSpec, gs GlyphSet, m3Seed uint32) string {
+	context := fontFileTemplateContext{f, gs, m3Seed}
 	return renderTemplate(fontFileTemplate, "fontfile", context)
 }
 
@@ -33,16 +27,11 @@ type usageTemplateContext struct {
 	Fonts   []FontSpec
 }
 
-// Holds data for rendering dataTemplate
-type dataTemplateContext struct {
-	GS     GlyphSet
-	M3Seed uint32
-}
-
 // Holds data for rendering fontFileTemplate
 type fontFileTemplateContext struct {
-	Font FontSpec
-	Data string
+	Font   FontSpec
+	GS     GlyphSet
+	M3Seed uint32
 }
 
 // Return a string from rendering the given template and context data
@@ -85,15 +74,13 @@ const fontFileTemplate = `// DO NOT MAKE EDITS HERE because this file is automat
 #![forbid(unsafe_code)]
 #![allow(dead_code)]
 
+use super::{GlyphData, NoGlyphErr};
+
 /// Maximum height of glyph patterns in this bitmap typeface.
 /// This will be true: h + y_offset <= MAX_HEIGHT
 pub const MAX_HEIGHT: u8 = {{.Font.Size}};
 
-{{.Data}}
-`
-
-// Template with rust source code for the data and index portion of a font file
-const dataTemplate = `/// Seed for Murmur3 hashes in the HASH_* index arrays
+/// Seed for Murmur3 hashes in the HASH_* index arrays
 pub const M3_SEED: u32 = {{.M3Seed}};
 
 /// Return Okay(offset into DATA[]) for start of blit pattern for grapheme cluster.
@@ -103,11 +90,11 @@ pub const M3_SEED: u32 = {{.M3Seed}};
 /// for Unicode blocks included in this font.
 ///
 /// Returns: Result<(blit pattern offset into DATA, bytes of cluster used by match)>
-pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::GlyphNotFound> {
+pub fn get_blit_pattern_offset(cluster: &str) -> Result<(GlyphData, usize), NoGlyphErr> {
     let first_char: u32;
     match cluster.chars().next() {
         Some(c) => first_char = c as u32,
-        None => return Err(super::GlyphNotFound),
+        None => return Err(NoGlyphErr),
     }
     return match first_char {
         {{ range $_, $k := .GS.IndexKeys -}}
@@ -115,14 +102,14 @@ pub fn get_blit_pattern_offset(cluster: &str) -> Result<(usize, usize), super::G
         0x{{printf "%X" $k.Low}}..=0x{{printf "%X" $k.High}} => {
             {{ range $_, $gcLen := $dex.ClusterLengthList -}}
             if let Some((offset, bytes_used)) = find_{{ToLower $k.Name}}(cluster, {{$gcLen}}) {
-                Ok((offset, bytes_used))
+                Ok((GlyphData::{{$.Font.Name}}(offset), bytes_used))
             } else {{ end }}{
-                Err(super::GlyphNotFound)
+                Err(NoGlyphErr)
             }
         }
         {{ end -}}
         {{- end -}}
-        _ => Err(super::GlyphNotFound),
+        _ => Err(super::NoGlyphErr),
     };
 }
 
@@ -162,4 +149,19 @@ const OFFSET_{{$k.Name}}: [usize; {{len $dex}}] = [
 ///  yOffset: Vertical offset (pixels downward from top of line) to position
 ///     glyph pattern properly relative to text baseline
 pub const DATA: [u32; {{.GS.DataLen}}] = [
-{{.GS.Code}}];`
+{{.GS.Code}}];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // If this fails, there's probably a hash collision, so change the seed.
+    fn test_hashes_unique_and_sorted() {
+{{- range $_, $k := .GS.IndexKeys }}
+        for i in 0..HASH_{{$k.Name}}.len()-1 {
+            assert!(HASH_{{$k.Name}}[i] < HASH_{{$k.Name}}[i+1]);
+        }{{ end }}
+    }
+}
+`

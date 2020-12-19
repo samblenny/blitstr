@@ -3,8 +3,8 @@
 //
 #![forbid(unsafe_code)]
 
-use crate::pt::Pt;
 use crate::cliprect::ClipRect;
+use crate::pt::Pt;
 
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
