@@ -131,7 +131,7 @@ pub fn glyph_to_height_hint(g: GlyphStyle) -> usize {
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str) {
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool) {
     // Based on the requested style of Latin text, figure out a priority order
     // of glyph sets to use for looking up grapheme clusters
     let gs1 = GlyphSet::Emoji;
@@ -156,13 +156,13 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
             } else {
                 break; // That was the last char, so stop now
             }
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs1) {
+        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs1, xor) {
             cluster = &cluster[bytes_used..];
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs2) {
+        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs2, xor) {
             cluster = &cluster[bytes_used..];
         } else {
             // Fallback: use replacement character
-            if let Ok(_) = xor_char(fb, clip, c, &"\u{FFFD}", gs1) {
+            if let Ok(_) = xor_char(fb, clip, c, &"\u{FFFD}", gs1, xor) {
                 // Advance string slice position by consuming one UTF-8 character
                 if let Some((i, _)) = cluster.char_indices().nth(1) {
                     cluster = &cluster[i..];
@@ -213,6 +213,7 @@ fn xor_char(
     c: &mut Cursor,
     cluster: &str,
     gs: GlyphSet,
+    xor: bool,
 ) -> Result<usize, fonts::GlyphNotFound> {
     if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
         return Ok(0);
@@ -276,10 +277,19 @@ fn xor_char(
         }
         // XOR glyph pixels onto destination buffer
         let base = (y0 + y) * WORDS_PER_LINE;
-        fb[base + dest_low_word] ^= pattern << (32 - px_in_dest_low_word);
-        if px_in_dest_low_word < gh.w {
-            fb[base + dest_high_word] ^= pattern >> px_in_dest_low_word;
+        if xor {
+            fb[base + dest_low_word] ^= pattern << (32 - px_in_dest_low_word);
+        } else {
+            fb[base + dest_low_word] &= 0xffff_ffff ^ (pattern << (32 - px_in_dest_low_word));
         }
+        if px_in_dest_low_word < gh.w {
+            if xor {
+                fb[base + dest_high_word] ^= pattern >> px_in_dest_low_word;
+            } else {
+                fb[base + dest_high_word] &= 0xffff_ffff ^ (pattern >> px_in_dest_low_word);
+            }
+        }
+        fb[base + (WORDS_PER_LINE - 1)] |= 0x1_0000; // set the dirty bit on the line
     }
     let width_of_blitted_pixels = gh.w + 3;
     c.pt.x += width_of_blitted_pixels;
