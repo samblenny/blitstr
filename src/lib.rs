@@ -131,7 +131,13 @@ pub fn glyph_to_height_hint(g: GlyphStyle) -> usize {
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool) {
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool,
+       paintchar_fn: fn(fb: &mut FrBuf,
+        clip: ClipRect,
+        c: &mut Cursor,
+        cluster: &str,
+        gs: GlyphSet,
+        xor: bool,) -> Result<usize, fonts::GlyphNotFound> ) {
     // Based on the requested style of Latin text, figure out a priority order
     // of glyph sets to use for looking up grapheme clusters
     let gs1 = GlyphSet::Emoji;
@@ -156,13 +162,13 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
             } else {
                 break; // That was the last char, so stop now
             }
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs1, xor) {
+        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, gs1, xor) {
             cluster = &cluster[bytes_used..];
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs2, xor) {
+        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, gs2, xor) {
             cluster = &cluster[bytes_used..];
         } else {
             // Fallback: use replacement character
-            if let Ok(_) = xor_char(fb, clip, c, &"\u{FFFD}", gs1, xor) {
+            if let Ok(_) = paintchar_fn(fb, clip, c, &"\u{FFFD}", gs1, xor) {
                 // Advance string slice position by consuming one UTF-8 character
                 if let Some((i, _)) = cluster.char_indices().nth(1) {
                     cluster = &cluster[i..];
@@ -207,7 +213,7 @@ fn newline(clip: ClipRect, c: &mut Cursor) {
 /// 1. Fits in word: xr:1..7   => (data[0].bit_30)->(data[0].bit_26), mask:0x7c00_0000
 /// 2. Spans words:  xr:30..36 => (data[0].bit_01)->(data[1].bit_29), mask:[0x0000_0003,0xe000_000]
 ///
-fn xor_char(
+pub fn xor_char(
     fb: &mut FrBuf,
     clip: ClipRect,
     c: &mut Cursor,
@@ -304,6 +310,48 @@ fn xor_char(
     }
     return Ok(bytes_used);
 }
+
+
+pub fn simulate_char(
+    _fb: &mut FrBuf,
+    clip: ClipRect,
+    c: &mut Cursor,
+    cluster: &str,
+    gs: GlyphSet,
+    _xor: bool,
+) -> Result<usize, fonts::GlyphNotFound> {
+    if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
+        return Ok(0);
+    }
+    // Look up glyph for grapheme cluster and unpack its header
+    let f = Font::new(gs);
+    let (gpo, bytes_used) = (f.glyph_pattern_offset)(cluster)?;
+    let gh = GlyphHeader::new((f.glyph_data)(gpo));
+    if gh.w > 32 {
+        return Ok(0);
+    }
+    // Don't clip if cursor is left of clip rect; instead, advance the cursor
+    if c.pt.x < clip.min.x {
+        c.pt.x = clip.min.x;
+    }
+    let y0 = c.pt.y + gh.y_offset;
+    if y0 > clip.max.y {
+        return Ok(0); // Entire glyph is outside clip rect, so clip it
+    }
+    let width_of_blitted_pixels = gh.w + 3;
+    c.pt.x += width_of_blitted_pixels;
+    let font_line_height = match gs {
+        GlyphSet::Bold => fonts::bold::MAX_HEIGHT,
+        GlyphSet::Regular => fonts::regular::MAX_HEIGHT,
+        GlyphSet::Small => fonts::small::MAX_HEIGHT,
+        GlyphSet::Emoji => fonts::emoji::MAX_HEIGHT,
+    } as usize;
+    if font_line_height > c.line_height {
+        c.line_height = font_line_height;
+    }
+    return Ok(bytes_used);
+}
+
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
 pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
