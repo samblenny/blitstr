@@ -22,6 +22,7 @@ pub const fn new_fr_buf() -> FrBuf {
 }
 
 /// Point specifies a pixel coordinate
+#[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Pt {
     pub x: u32,
@@ -32,6 +33,7 @@ pub struct Pt {
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[repr(C)]
 pub struct Cursor {
     pub pt: Pt,
     pub line_height: u32,
@@ -60,6 +62,7 @@ impl Cursor {
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[repr(C)]
 pub struct ClipRect {
     pub min: Pt,
     pub max: Pt,
@@ -93,6 +96,7 @@ impl ClipRect {
 
 /// Style options for Latin script fonts
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[repr(C)]
 pub enum GlyphStyle {
     Small = 0,
     Regular = 1,
