@@ -29,7 +29,7 @@ pub fn sample_text(fb: &mut FrBuf) {
     paint_str(fb, clip, c, GlyphStyle::Regular, wrap, true, crate::xor_char);
     // Demonstrate messing with the clip region and cursor:
     // 1. Convenience function to make a new cursor
-    let c = &mut Cursor::new(c.pt.x, c.pt.y, c.line_height);
+    let c = &mut Cursor::new(c.pt.x as _, c.pt.y as _, c.line_height as _);
     // 2. Reduce the ClipRect to a small-ish box at the bottom of the screen
     //    with big margins on its left and right sides
     clip.min.y = c.pt.y + 12;
@@ -38,7 +38,7 @@ pub fn sample_text(fb: &mut FrBuf) {
     clip.max.x -= 40;
     // 3. Convenience function to make a new ClipRect with min/max auto-correct
     //    Note: fn def is `new(min_x: usize, min_y: usize, max_x: usize, max_y: usize)`
-    let clip = ClipRect::new(clip.max.x, clip.min.y, clip.min.x, clip.max.y);
+    let clip = ClipRect::new(clip.max.x as _, clip.min.y as _, clip.min.x as _, clip.max.y as _);
     // Blit the string
     paint_str(fb, clip, c, GlyphStyle::Small, wrap, true, crate::xor_char);
 }

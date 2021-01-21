@@ -24,8 +24,8 @@ pub const fn new_fr_buf() -> FrBuf {
 /// Point specifies a pixel coordinate
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Pt {
-    pub x: usize,
-    pub y: usize,
+    pub x: u32,
+    pub y: u32,
 }
 
 /// Cursor specifies a drawing position along a line of text. Lines of text can
@@ -34,14 +34,14 @@ pub struct Pt {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Cursor {
     pub pt: Pt,
-    pub line_height: usize,
+    pub line_height: u32,
 }
 impl Cursor {
     // Make a new Cursor. When in doubt, set line_height = 0.
     pub fn new(x: usize, y: usize, line_height: usize) -> Cursor {
         Cursor {
-            pt: Pt { x, y },
-            line_height,
+            pt: Pt { x: x as u32, y: y as u32 },
+            line_height: line_height as u32,
         }
     }
     // Make a Cursor aligned at the top left corner of a ClipRect
@@ -67,6 +67,10 @@ pub struct ClipRect {
 impl ClipRect {
     /// Initialize a rectangle using automatic min/max fixup for corner points
     pub fn new(min_x: usize, min_y: usize, max_x: usize, max_y: usize) -> ClipRect {
+        let min_x = min_x as u32;
+        let min_y = min_y as u32;
+        let max_x = max_x as u32;
+        let max_y = max_y as u32;
         // Make sure min_x <= max_x && min_y <= max_y
         let mut min = Pt { x: min_x, y: min_y };
         let mut max = Pt { x: max_x, y: max_y };
@@ -183,8 +187,8 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
 /// Advance the cursor to the start of a new line within the clip rect
 fn newline(clip: ClipRect, c: &mut Cursor) {
     c.pt.x = clip.min.x;
-    if c.line_height < fonts::small::MAX_HEIGHT as usize {
-        c.line_height = fonts::small::MAX_HEIGHT as usize;
+    if c.line_height < fonts::small::MAX_HEIGHT as u32 {
+        c.line_height = fonts::small::MAX_HEIGHT as u32;
     }
     c.pt.y += c.line_height + 1;
     c.line_height = 0;
@@ -221,13 +225,14 @@ pub fn xor_char(
     gs: GlyphSet,
     xor: bool,
 ) -> Result<usize, fonts::GlyphNotFound> {
-    if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
+    if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
     // Look up glyph for grapheme cluster and unpack its header
     let f = Font::new(gs);
     let (gpo, bytes_used) = (f.glyph_pattern_offset)(cluster)?;
     let gh = GlyphHeader::new((f.glyph_data)(gpo));
+    let gpo = gpo as u32;
     if gh.w > 32 {
         return Ok(0);
     }
@@ -269,7 +274,7 @@ pub fn xor_char(
         let px_offset = y * gh.w;
         let low_word = gpo + 1 + (px_offset >> 5);
         let px_in_low_word = 32 - (px_offset & 0x1f);
-        let mut pattern = (f.glyph_data)(low_word);
+        let mut pattern = (f.glyph_data)(low_word as usize);
         // Mask and align pixels from low word of glyph data array
         pattern <<= 32 - px_in_low_word;
         pattern >>= 32 - gh.w;
@@ -277,25 +282,25 @@ pub fn xor_char(
             // When pixels for this row span two words in the glyph data array,
             // get pixels from the high word too
             let px_in_high_word = gh.w - px_in_low_word;
-            let mut pattern_h = (f.glyph_data)(low_word + 1);
+            let mut pattern_h = (f.glyph_data)(low_word as usize + 1);
             pattern_h >>= 32 - px_in_high_word;
             pattern |= pattern_h;
         }
         // XOR glyph pixels onto destination buffer
-        let base = (y0 + y) * WORDS_PER_LINE;
+        let base = (y0 + y) * WORDS_PER_LINE as u32;
         if xor {
-            fb[base + dest_low_word] ^= pattern << (32 - px_in_dest_low_word);
+            fb[(base + dest_low_word) as usize] ^= pattern << (32 - px_in_dest_low_word);
         } else {
-            fb[base + dest_low_word] &= 0xffff_ffff ^ (pattern << (32 - px_in_dest_low_word));
+            fb[(base + dest_low_word) as usize] &= 0xffff_ffff ^ (pattern << (32 - px_in_dest_low_word));
         }
         if px_in_dest_low_word < gh.w {
             if xor {
-                fb[base + dest_high_word] ^= pattern >> px_in_dest_low_word;
+                fb[(base + dest_high_word) as usize] ^= pattern >> px_in_dest_low_word;
             } else {
-                fb[base + dest_high_word] &= 0xffff_ffff ^ (pattern >> px_in_dest_low_word);
+                fb[(base + dest_high_word) as usize] &= 0xffff_ffff ^ (pattern >> px_in_dest_low_word);
             }
         }
-        fb[base + (WORDS_PER_LINE - 1)] |= 0x1_0000; // set the dirty bit on the line
+        fb[base as usize + (WORDS_PER_LINE - 1)] |= 0x1_0000; // set the dirty bit on the line
     }
     let width_of_blitted_pixels = gh.w + 3;
     c.pt.x += width_of_blitted_pixels;
@@ -305,8 +310,8 @@ pub fn xor_char(
         GlyphSet::Small => fonts::small::MAX_HEIGHT,
         GlyphSet::Emoji => fonts::emoji::MAX_HEIGHT,
     } as usize;
-    if font_line_height > c.line_height {
-        c.line_height = font_line_height;
+    if font_line_height > c.line_height as usize {
+        c.line_height = font_line_height as u32;
     }
     return Ok(bytes_used);
 }
@@ -320,7 +325,7 @@ pub fn simulate_char(
     gs: GlyphSet,
     _xor: bool,
 ) -> Result<usize, fonts::GlyphNotFound> {
-    if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
+    if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
     // Look up glyph for grapheme cluster and unpack its header
@@ -346,8 +351,8 @@ pub fn simulate_char(
         GlyphSet::Small => fonts::small::MAX_HEIGHT,
         GlyphSet::Emoji => fonts::emoji::MAX_HEIGHT,
     } as usize;
-    if font_line_height > c.line_height {
-        c.line_height = font_line_height;
+    if font_line_height > c.line_height as usize {
+        c.line_height = font_line_height as u32;
     }
     return Ok(bytes_used);
 }
@@ -355,9 +360,9 @@ pub fn simulate_char(
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
 pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
-    if clip.max.y > LINES
+    if clip.max.y > LINES as u32
         || clip.min.y >= clip.max.y
-        || clip.max.x > WIDTH
+        || clip.max.x > WIDTH as u32
         || clip.min.x >= clip.max.x
     {
         return;
@@ -369,13 +374,13 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
     let px_in_dest_high_word = clip.max.x & 0x1f;
     // Blit it
     for y in clip.min.y..clip.max.y {
-        let base = y * WORDS_PER_LINE;
-        fb[base + dest_low_word] |= 0xffffffff << (32 - px_in_dest_low_word);
+        let base = y * WORDS_PER_LINE as u32;
+        fb[(base + dest_low_word) as usize] |= 0xffffffff << (32 - px_in_dest_low_word);
         for w in dest_low_word + 1..dest_high_word {
-            fb[base + w] = 0xffffffff;
+            fb[(base + w) as usize] = 0xffffffff;
         }
         if dest_low_word < dest_high_word {
-            fb[base + dest_high_word] |= 0xffffffff >> (32 - px_in_dest_high_word);
+            fb[(base + dest_high_word) as usize] |= 0xffffffff >> (32 - px_in_dest_high_word);
         }
     }
 }

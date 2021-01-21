@@ -18,16 +18,16 @@ use core::fmt;
 
 /// Holds header data for a font glyph
 pub struct GlyphHeader {
-    pub w: usize,
-    pub h: usize,
-    pub y_offset: usize,
+    pub w: u32,
+    pub h: u32,
+    pub y_offset: u32,
 }
 impl GlyphHeader {
     /// Unpack glyph header of format: (w:u8)<<16 | (h:u8)<<8 | yOffset:u8
     pub fn new(header: u32) -> GlyphHeader {
-        let w = ((header << 8) >> 24) as usize;
-        let h = ((header << 16) >> 24) as usize;
-        let y_offset = (header & 0x000000ff) as usize;
+        let w = ((header << 8) >> 24) as u32;
+        let h = ((header << 16) >> 24) as u32;
+        let y_offset = (header & 0x000000ff) as u32;
         GlyphHeader { w, h, y_offset }
     }
 }
