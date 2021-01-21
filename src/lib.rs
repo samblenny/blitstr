@@ -9,10 +9,10 @@ mod fonts;
 use fonts::{Font, GlyphHeader, GlyphSet};
 
 /// Frame buffer bounds
-pub const WORDS_PER_LINE: usize = 11;
-pub const WIDTH: usize = 336;
-pub const LINES: usize = 536;
-pub const FRAME_BUF_SIZE: usize = WORDS_PER_LINE * LINES;
+pub const WORDS_PER_LINE: u32 = 11;
+pub const WIDTH: u32 = 336;
+pub const LINES: u32 = 536;
+pub const FRAME_BUF_SIZE: usize = (WORDS_PER_LINE * LINES) as usize;
 
 /// Frame buffer of 1-bit pixels
 pub type FrBuf = [u32; FRAME_BUF_SIZE];
@@ -38,10 +38,10 @@ pub struct Cursor {
 }
 impl Cursor {
     // Make a new Cursor. When in doubt, set line_height = 0.
-    pub fn new(x: usize, y: usize, line_height: usize) -> Cursor {
+    pub fn new(x: u32, y: u32, line_height: u32) -> Cursor {
         Cursor {
-            pt: Pt { x: x as u32, y: y as u32 },
-            line_height: line_height as u32,
+            pt: Pt { x, y },
+            line_height,
         }
     }
     // Make a Cursor aligned at the top left corner of a ClipRect
@@ -66,11 +66,7 @@ pub struct ClipRect {
 }
 impl ClipRect {
     /// Initialize a rectangle using automatic min/max fixup for corner points
-    pub fn new(min_x: usize, min_y: usize, max_x: usize, max_y: usize) -> ClipRect {
-        let min_x = min_x as u32;
-        let min_y = min_y as u32;
-        let max_x = max_x as u32;
-        let max_y = max_y as u32;
+    pub fn new(min_x: u32, min_y: u32, max_x: u32, max_y: u32) -> ClipRect {
         // Make sure min_x <= max_x && min_y <= max_y
         let mut min = Pt { x: min_x, y: min_y };
         let mut max = Pt { x: max_x, y: max_y };
@@ -141,7 +137,7 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
         c: &mut Cursor,
         cluster: &str,
         gs: GlyphSet,
-        xor: bool,) -> Result<usize, fonts::GlyphNotFound> ) {
+        xor: bool,) -> Result<u32, fonts::GlyphNotFound> ) {
     // Based on the requested style of Latin text, figure out a priority order
     // of glyph sets to use for looking up grapheme clusters
     let gs1 = GlyphSet::Emoji;
@@ -167,9 +163,9 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
                 break; // That was the last char, so stop now
             }
         } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, gs1, xor) {
-            cluster = &cluster[bytes_used..];
+            cluster = &cluster[bytes_used as usize..];
         } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, gs2, xor) {
-            cluster = &cluster[bytes_used..];
+            cluster = &cluster[bytes_used as usize..];
         } else {
             // Fallback: use replacement character
             if let Ok(_) = paintchar_fn(fb, clip, c, &"\u{FFFD}", gs1, xor) {
@@ -224,7 +220,7 @@ pub fn xor_char(
     cluster: &str,
     gs: GlyphSet,
     xor: bool,
-) -> Result<usize, fonts::GlyphNotFound> {
+) -> Result<u32, fonts::GlyphNotFound> {
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
@@ -300,7 +296,7 @@ pub fn xor_char(
                 fb[(base + dest_high_word) as usize] &= 0xffff_ffff ^ (pattern >> px_in_dest_low_word);
             }
         }
-        fb[base as usize + (WORDS_PER_LINE - 1)] |= 0x1_0000; // set the dirty bit on the line
+        fb[(base + WORDS_PER_LINE - 1) as usize] |= 0x1_0000; // set the dirty bit on the line
     }
     let width_of_blitted_pixels = gh.w + 3;
     c.pt.x += width_of_blitted_pixels;
@@ -313,7 +309,7 @@ pub fn xor_char(
     if font_line_height > c.line_height as usize {
         c.line_height = font_line_height as u32;
     }
-    return Ok(bytes_used);
+    return Ok(bytes_used as u32);
 }
 
 
@@ -324,7 +320,7 @@ pub fn simulate_char(
     cluster: &str,
     gs: GlyphSet,
     _xor: bool,
-) -> Result<usize, fonts::GlyphNotFound> {
+) -> Result<u32, fonts::GlyphNotFound> {
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
@@ -354,7 +350,7 @@ pub fn simulate_char(
     if font_line_height > c.line_height as usize {
         c.line_height = font_line_height as u32;
     }
-    return Ok(bytes_used);
+    return Ok(bytes_used as u32);
 }
 
 
