@@ -23,7 +23,7 @@ pub const fn new_fr_buf() -> FrBuf {
 
 /// Point specifies a pixel coordinate
 #[repr(C)]
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive)]
 pub struct Pt {
     pub x: u32,
     pub y: u32,
@@ -32,7 +32,7 @@ pub struct Pt {
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive)]
 #[repr(C)]
 pub struct Cursor {
     pub pt: Pt,
@@ -61,7 +61,7 @@ impl Cursor {
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
 /// - (WIDTH, LINES) is bottom right
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive)]
 #[repr(C)]
 pub struct ClipRect {
     pub min: Pt,
@@ -95,7 +95,7 @@ impl ClipRect {
 }
 
 /// Style options for Latin script fonts
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive)]
 #[repr(C)]
 pub enum GlyphStyle {
     Small = 0,
