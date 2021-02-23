@@ -5,10 +5,6 @@ A safe* no_std multi-lingual string blitter for 1-bit monochrome
 \* "safe" meaning `#![forbid(unsafe_code)]` in the blitstr library
 (wasm demo unavoidably uses `unsafe`)
 
-## Project Status: On Hiatus
-
-I'm not actively working on this. Feel free to maintain your own forks.
-
 
 ## Usage
 
