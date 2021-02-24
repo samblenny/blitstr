@@ -89,6 +89,26 @@ line-height based on the tallest glyph used in its current line. For example,
 increase the line-height to 32px, regardless of `GlyphStyle`.
 
 
+### Developer Tools Setup
+
+| Tool | Purpose |
+|--|--|
+| rustup | Get rustc, cargo, and wasm32-unknown-unknown |
+| ruby v2.3+ | Local web server for WebAssembly Demo |
+| Go v1.16+ | Code generation for bitmap fonts |
+| GNU make | Augment cargo for building the wasm demo |
+
+1. Install rustc with rustup. See https://www.rust-lang.org/tools/install
+2. Configure PATH environment variable: add `export PATH="$PATH:$HOME/.cargo/bin"`
+   to .bash_profile or whatever
+3. Add WebAssembly compile target: `rustup target add wasm32-unknown-unknown`
+4. Make sure you have a ruby interpreter, v2.3 or later: `ruby --version`
+   - For macOS Mojave or Catalina, default system ruby should work fine.
+   - Debian may need `sudo apt install ruby`
+5. **Optional:** Install the go toolchain. You only need go if you want to
+   modify the bitmap fonts. See https://golang.org/
+
+
 ## WebAssembly Demo
 
 Hosted: https://samblenny.github.io/blitstr/wasm_demo/
