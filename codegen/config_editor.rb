@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 # coding: utf-8
-# Copyright (c) 2020 Sam Blenny
+# Copyright (c) 2021 Sam Blenny
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
 # Generate json config, index, and alias files for codegen. Resorting to this
@@ -35,6 +35,17 @@ config = {
       aliases: "src_data/emoji_13_0_aliases.txt",
       glyphTrim: "CJK",
       rustout: "../src/fonts/emoji.rs",
+    },
+    {
+      name: "Hanzi",
+      m3Seed: 0,
+      sprites: "src_data/hanzi_core2020_g.png", size: 32, cols: 20, gutter: 0, border: 0,
+      legal: "src_data/noto_sans_sc_legal.txt",
+      index: "src_data/hanzi_core2020_g_index.txt",
+      indexType: "txt-row-major",
+      aliases: "",
+      glyphTrim: "CJK",
+      rustout: "../src/fonts/hanzi.rs",
     },
     {
       name: "Bold",
