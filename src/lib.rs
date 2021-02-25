@@ -106,6 +106,14 @@ mod tests {
     }
 
     #[test]
+    /// Test paint_str() with a 4 line poem using hanzi.
+    fn test_paint_str_hanzi_goose_poem() {
+        let fb = &mut new_fr_buf();
+        demo::goose_poem(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 0x9bd28a96);
+    }
+
+    #[test]
     /// Test paint_str() for full string at once vs. concatenating chars.
     /// The point of this is, you can call paint_str() repeatedly reusing the
     /// same cursor, and it will keep track of concatenation and word-wrap.

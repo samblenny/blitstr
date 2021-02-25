@@ -59,3 +59,20 @@ pub fn short_greeting(fb: &mut FrBuf) {
     paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, world!\n");
     paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, 😸!\n");
 }
+
+/// Poem
+pub fn goose_poem(fb: &mut FrBuf) {
+    // Clear screen
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    // Paint poem
+    let clip = ClipRect::padded_screen();
+    let c = &mut Cursor::from_top_left_of(clip);
+    let poem = &concat!(
+        "鹅、鹅、鹅，\n",
+        "曲项向天歌。\n",
+        "白毛浮绿水，\n",
+        "红掌拨清波\n",
+    );
+    paint_str(fb, clip, c, GlyphStyle::Regular, poem);
+}

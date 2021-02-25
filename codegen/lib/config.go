@@ -61,7 +61,7 @@ func (c Config) Fonts() []FontSpec {
 			gs.Name, gs.Sprites, gs.Size, gs.Cols, gs.Gutter, gs.Border,
 			gs.readLegal(),
 			gs.graphemeClusterMap(), gs.graphemeClusterAliases(),
-			gs.RustOut, gs.M3Seed,
+			gs.RustOut, gs.GlyphTrim, gs.M3Seed,
 		}
 		list = append(list, fs)
 	}
