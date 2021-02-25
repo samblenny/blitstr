@@ -33,7 +33,7 @@ config = {
       index: "src_data/emoji_13_0_index.txt",
       indexType: "txt-row-major",
       aliases: "src_data/emoji_13_0_aliases.txt",
-      glyphTrim: "CJK",
+      glyphTrim: "proportional",
       rustout: "../src/fonts/emoji.rs",
     },
     {

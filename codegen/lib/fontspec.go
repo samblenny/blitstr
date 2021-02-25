@@ -15,6 +15,7 @@ type FontSpec struct {
 	CSList    []CharSpec // Map of grapheme clusters to glyph grid coordinates
 	AliasList []GCAlias  // Map of grapheme cluster aliases (alternate names for glyphs)
 	RustOut   string     // Where should the generated rust source code go?
+	GlyphTrim string     // How should bitmap glyphs be trimmed (proportional or CJK)?
 	M3Seed    uint32     // Hash seed (change value in config.json in case of hash collisions
 }
 
@@ -27,6 +28,9 @@ func (f FontSpec) TrimLimits(row int, col int) [4]int {
 			tb := (f.Size / 2) - 1
 			return [4]int{tb, lr, tb, lr}
 		}
+	} else if f.GlyphTrim == "CJK" {
+		// No trim for CJK
+		return [4]int{0, 0, 0, 0}
 	}
 	// Everything else gets max trim
 	return [4]int{f.Size, f.Size, f.Size, f.Size}
