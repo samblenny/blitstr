@@ -124,6 +124,7 @@ ruby webserver.rb
 ```
 
 Currently the demo looks like this:
+
 ![wasm demo screenshot](doc/goose_poem.png)
 
 
