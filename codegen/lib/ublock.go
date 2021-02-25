@@ -39,6 +39,7 @@ func knownBlocks() []UBlock {
 		UBlock{0x4E00, 0x9FFF, "CJK_UNIFIED_IDEOGRAPHS"},
 		UBlock{0xE000, 0xF8FF, "PRIVATE_USE_AREA"},                        // Emoji (109)
 		UBlock{0xFFF0, 0xFFFF, "SPECIALS"},                                // Latin (replacement char)
+		UBlock{0xFF00, 0xFFEF, "HALFWIDTH_AND_FULLWIDTH_FORMS"},
 		UBlock{0x1F000, 0x1F02F, "MAHJONG_TILES"},                         // Emoji
 		UBlock{0x1F0A0, 0x1F0FF, "PLAYING_CARDS"},                         // Emoji
 		UBlock{0x1F100, 0x1F1FF, "ENCLOSED_ALPHANUMERIC_SUPPLEMENT"},      // Emoji
