@@ -39,7 +39,7 @@ config = {
     {
       name: "Hanzi",
       m3Seed: 0,
-      sprites: "src_data/hanzi_core2020_g.png", size: 32, cols: 20, gutter: 0, border: 0,
+      sprites: "src_data/hanzi_core2020_g.png", size: 32, cols: 20, gutter: 2, border: 2,
       legal: "src_data/noto_sans_sc_legal.txt",
       index: "src_data/hanzi_core2020_g_index.txt",
       indexType: "txt-row-major",
