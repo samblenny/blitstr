@@ -1,9 +1,12 @@
 [package]
 name = "blitstr"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["samblenny"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
 rkyv = { version = "0.3.1", default_features = false }
+
+[lib]
+doctest = false
