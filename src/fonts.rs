@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 pub mod bold;
 pub mod emoji;
+pub mod hanzi;
 pub mod regular;
 pub mod small;
 
@@ -17,6 +18,7 @@ pub enum GlyphData {
     Bold(usize),
     Regular(usize),
     Small(usize),
+    Hanzi(usize),
 }
 impl GlyphData {
     /// Unpack glyph header of format: (w:u8)<<16 | (h:u8)<<8 | yOffset:u8
@@ -26,6 +28,7 @@ impl GlyphData {
             GlyphData::Bold(offset) => bold::DATA[offset],
             GlyphData::Regular(offset) => regular::DATA[offset],
             GlyphData::Small(offset) => small::DATA[offset],
+            GlyphData::Hanzi(offset) => hanzi::DATA[offset],
         };
         let w = ((header << 8) >> 24) as usize;
         let h = ((header << 16) >> 24) as usize;
@@ -40,6 +43,7 @@ impl GlyphData {
             GlyphData::Bold(offset) => bold::DATA[offset + n],
             GlyphData::Regular(offset) => regular::DATA[offset + n],
             GlyphData::Small(offset) => small::DATA[offset + n],
+            GlyphData::Hanzi(offset) => hanzi::DATA[offset + n],
         }
     }
 }
@@ -58,6 +62,7 @@ pub enum GlyphSet {
     Bold,
     Regular,
     Small,
+    Hanzi,
 }
 
 /// Error type for when a font has no glyph to match a grapheme cluster query

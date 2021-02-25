@@ -47,6 +47,7 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
         GlyphStyle::Regular => GlyphSet::Regular,
         GlyphStyle::Small => GlyphSet::Small,
     };
+    let gs3 = GlyphSet::Hanzi;
     // Parse the string, consuming one grapheme cluster for each iteration of
     // the for loop. Since grapheme cluster length varies, s.len() is just an
     // upper bound that's only exact for pure ASCII strings.
@@ -66,6 +67,8 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
         } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs1) {
             cluster = &cluster[bytes_used..];
         } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs2) {
+            cluster = &cluster[bytes_used..];
+        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs3) {
             cluster = &cluster[bytes_used..];
         } else {
             // Fallback: use replacement character
@@ -130,6 +133,7 @@ fn xor_char(
         GlyphSet::Bold => fonts::bold::get_blit_pattern_offset(cluster)?,
         GlyphSet::Regular => fonts::regular::get_blit_pattern_offset(cluster)?,
         GlyphSet::Small => fonts::small::get_blit_pattern_offset(cluster)?,
+        GlyphSet::Hanzi => fonts::hanzi::get_blit_pattern_offset(cluster)?,
     };
     let gh = glyph_data.header();
     if gh.w > 32 {
@@ -199,6 +203,7 @@ fn xor_char(
         GlyphSet::Regular => fonts::regular::MAX_HEIGHT,
         GlyphSet::Small => fonts::small::MAX_HEIGHT,
         GlyphSet::Emoji => fonts::emoji::MAX_HEIGHT,
+        GlyphSet::Hanzi => fonts::hanzi::MAX_HEIGHT,
     } as usize;
     if font_line_height > c.line_height {
         c.line_height = font_line_height;
