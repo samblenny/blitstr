@@ -39,15 +39,12 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
 pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str) {
-    // Based on the requested style of Latin text, figure out a priority order
-    // of glyph sets to use for looking up grapheme clusters
-    let gs1 = GlyphSet::Emoji;
-    let gs2 = match st {
+    // Look up the latin GlyphSet for the requested GlyphStyle (emoji & hanzi are always included)
+    let gs_latin = match st {
         GlyphStyle::Bold => GlyphSet::Bold,
         GlyphStyle::Regular => GlyphSet::Regular,
         GlyphStyle::Small => GlyphSet::Small,
     };
-    let gs3 = GlyphSet::Hanzi;
     // Parse the string, consuming one grapheme cluster for each iteration of
     // the for loop. Since grapheme cluster length varies, s.len() is just an
     // upper bound that's only exact for pure ASCII strings.
@@ -57,27 +54,24 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
             break; // All grapheme clusters have been consumed
         }
         if Some('\n') == cluster.chars().next() {
-            // Handle whitespace
+            // Handle whitespace, note that '\n' uses 1 byte
             newline(clip, c);
-            if let Some((i, _)) = cluster.char_indices().nth(1) {
-                cluster = &cluster[i..];
-            } else {
-                break; // That was the last char, so stop now
-            }
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs1) {
+            cluster = &cluster[1..];
+        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, GlyphSet::Emoji) {
             cluster = &cluster[bytes_used..];
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs2) {
+        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs_latin) {
             cluster = &cluster[bytes_used..];
-        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, gs3) {
+        } else if let Ok(bytes_used) = xor_char(fb, clip, c, cluster, GlyphSet::Hanzi) {
             cluster = &cluster[bytes_used..];
         } else {
             // Fallback: use replacement character
-            if let Ok(_) = xor_char(fb, clip, c, &"\u{FFFD}", gs1) {
+            if let Ok(_) = xor_char(fb, clip, c, &"\u{FFFD}", gs_latin) {
                 // Advance string slice position by consuming one UTF-8 character
                 if let Some((i, _)) = cluster.char_indices().nth(1) {
                     cluster = &cluster[i..];
                 } else {
-                    break; // That was the last char, so stop now
+                    //cluster = &cluster[1..];
+                    //break; // That was the last char, so stop now
                 }
             }
         }
