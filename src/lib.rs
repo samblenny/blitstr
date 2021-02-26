@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 #![no_std]
-#![forbid(unsafe_code)]
+// #![forbid(unsafe_code)] // must allow for mapping filesystem-based fonts in this crate
 
 mod api;
 mod blit;
@@ -54,7 +54,7 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Small, "abc");
+        paint_str(fb, clip, cursor, GlyphStyle::Small, "abc", true, xor_char);
         // Note how hash differs from tests with Regular and Bold (below)
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x5DE65BFC);
     }
@@ -66,7 +66,7 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc");
+        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc", true, xor_char);
         // Note how hash differs from tests with Small (above) and Bold (below)
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x529828DB);
     }
@@ -78,7 +78,7 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Bold, "abc");
+        paint_str(fb, clip, cursor, GlyphStyle::Bold, "abc", true, xor_char);
         // Note how hash differs from tests with Small and Regular (above)
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x411C2E62);
     }
@@ -91,17 +91,17 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Small, "😸"); // Small
+        paint_str(fb, clip, cursor, GlyphStyle::Small, "😸", true, xor_char); // Small
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
 
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, "😸"); // Regular
+        paint_str(fb, clip, cursor, GlyphStyle::Regular, "😸", true, xor_char); // Regular
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
 
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Bold, "😸"); // Bold
+        paint_str(fb, clip, cursor, GlyphStyle::Bold, "😸", true, xor_char); // Bold
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
     }
 
@@ -124,7 +124,7 @@ mod tests {
         // Paint the whole string at once
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, s);
+        paint_str(fb, clip, cursor, GlyphStyle::Regular, s, true, xor_char);
         assert_eq!(m3hash::frame_buffer(fb, 0), 0xE5240DD1); // Same hash
 
         // Paint it again one char at a time
@@ -139,7 +139,7 @@ mod tests {
                     Some((k, _)) => &s[j..k],
                     _ => &s[j..],
                 };
-                paint_str(fb, clip, cursor, GlyphStyle::Regular, c);
+                paint_str(fb, clip, cursor, GlyphStyle::Regular, c, true, xor_char);
             } else {
                 break; // That was the last char, so stop now
             }

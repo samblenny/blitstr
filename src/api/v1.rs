@@ -16,6 +16,9 @@ pub use crate::framebuffer::{new_fr_buf, FrBuf, FRAME_BUF_SIZE, LINES, WIDTH, WO
 pub use crate::glyphstyle::{glyph_to_height_hint, GlyphStyle};
 pub use crate::pt::Pt;
 
+#[cfg(target_os = "none")]
+pub use crate::fonts::{map_font, GlyphData};
+
 /// These tests aim to cover all names exported in the v1 api
 #[cfg(test)]
 mod tests {
@@ -28,7 +31,7 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc");
+        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc", true, xor_char);
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x529828DB);
     }
 

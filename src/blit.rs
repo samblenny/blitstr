@@ -126,10 +126,14 @@ pub fn xor_char(
     gs: GlyphSet,
     xor: bool,
 ) -> Result<u32, NoGlyphErr> {
+    use log::info;
+    let debug = true;
+    if debug { info!("BLITSTR: in xor_char for str {}", cluster); }
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
     // Look up glyph for grapheme cluster and unpack its header
+    if debug { info!("BLITSTR: glyph lookup"); }
     let (glyph_data, bytes_used) = match gs {
         GlyphSet::Emoji => fonts::emoji::get_blit_pattern_offset(cluster)?,
         GlyphSet::Bold => fonts::bold::get_blit_pattern_offset(cluster)?,
@@ -137,7 +141,9 @@ pub fn xor_char(
         GlyphSet::Small => fonts::small::get_blit_pattern_offset(cluster)?,
         GlyphSet::Hanzi => fonts::hanzi::get_blit_pattern_offset(cluster)?,
     };
-    let gh = glyph_data.header();
+    if debug { info!("BLITSTR: getting header on glyph_data {:?}", glyph_data); }
+    let gh = glyph_data.header()?;
+    if debug { info!("BLITSTR: after header"); }
     if gh.w > 32 {
         return Ok(0);
     }
@@ -179,7 +185,7 @@ pub fn xor_char(
         let px_offset = y * gh.w;
         let low_word = 1 + (px_offset >> 5);
         let px_in_low_word = 32 - (px_offset & 0x1f);
-        let mut pattern = glyph_data.nth_word(low_word as usize);
+        let mut pattern = glyph_data.nth_word(low_word as usize)?;
         // Mask and align pixels from low word of glyph data array
         pattern <<= 32 - px_in_low_word;
         pattern >>= 32 - gh.w;
@@ -187,7 +193,7 @@ pub fn xor_char(
             // When pixels for this row span two words in the glyph data array,
             // get pixels from the high word too
             let px_in_high_word = gh.w - px_in_low_word;
-            let mut pattern_h = glyph_data.nth_word(low_word as usize + 1);
+            let mut pattern_h = glyph_data.nth_word(low_word as usize + 1)?;
             pattern_h >>= 32 - px_in_high_word;
             pattern |= pattern_h;
         }
@@ -242,7 +248,7 @@ pub fn simulate_char(
         GlyphSet::Small => fonts::small::get_blit_pattern_offset(cluster)?,
         GlyphSet::Hanzi => fonts::hanzi::get_blit_pattern_offset(cluster)?,
     };
-    let gh = glyph_data.header();
+    let gh = glyph_data.header()?;
     if gh.w > 32 {
         return Ok(0);
     }
