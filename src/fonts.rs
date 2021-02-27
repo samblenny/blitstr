@@ -15,7 +15,7 @@ use core::fmt;
 pub fn map_font(font_map: GlyphData) {
     use core::sync::atomic::Ordering::Relaxed;
     use log::info;
-    let debug = true;
+    let debug = false;
     match font_map {
         GlyphData::Emoji(addr) => {emoji::DATA_LOCATION.store(addr as u32, Relaxed);
             if debug {info!("BLITSTR: emoji addr 0x{:08x}", addr as u32)} },
@@ -45,45 +45,58 @@ impl GlyphData {
     pub fn header(self) -> Result<GlyphHeader, NoGlyphErr> {
         use core::sync::atomic::Ordering::Relaxed;
         use log::info;
-        let debug = true;
+        let debug = false;
         if debug { info!("BLITSTR: header unpack: {:?}", self); }
         let header = match self {
             GlyphData::Emoji(offset) => {
+                if debug { info!("BLITSTR: emoji at 0x{:08x}", emoji::DATA_LOCATION.load(Relaxed) ); }
                 if emoji::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; emoji::DATA_LEN] = emoji::DATA_LOCATION.load(Relaxed) as usize as *const [u32; emoji::DATA_LEN];
-                (unsafe{*data})[offset]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(emoji::DATA_LOCATION.load(Relaxed));
+                    data.add(offset).read_volatile()
+                }
             },
             GlyphData::Bold(offset) => {
+                if debug { info!("BLITSTR: bold at 0x{:08x}", bold::DATA_LOCATION.load(Relaxed) ); }
                 if bold::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; bold::DATA_LEN] = bold::DATA_LOCATION.load(Relaxed) as usize as *const [u32; bold::DATA_LEN];
-                (unsafe{*data})[offset]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(bold::DATA_LOCATION.load(Relaxed));
+                    data.add(offset).read_volatile()
+                }
             },
             GlyphData::Regular(offset) => {
                 if debug { info!("BLITSTR: regular at 0x{:08x}", regular::DATA_LOCATION.load(Relaxed) ); }
                 if regular::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; regular::DATA_LEN] = regular::DATA_LOCATION.load(Relaxed) as usize as *const [u32; regular::DATA_LEN];
-                (unsafe{*data})[offset]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(regular::DATA_LOCATION.load(Relaxed));
+                    data.add(offset).read_volatile()
+                }
             },
             GlyphData::Small(offset) => {
-                if debug { info!("BLITSTR: small at 0x{:08x}", small::DATA_LOCATION.load(Relaxed) ); }
+                if debug { info!("BLITSTR: small at 0x{:08x}, offset {}", small::DATA_LOCATION.load(Relaxed), offset ); }
                 if small::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; small::DATA_LEN] = small::DATA_LOCATION.load(Relaxed) as usize as *const [u32; small::DATA_LEN];
-                (unsafe{*data})[offset]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(small::DATA_LOCATION.load(Relaxed));
+                    data.add(offset).read_volatile()
+                }
             },
             GlyphData::Hanzi(offset) => {
+                if debug { info!("BLITSTR: hanzi at 0x{:08x}", hanzi::DATA_LOCATION.load(Relaxed) ); }
                 if hanzi::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; hanzi::DATA_LEN] = hanzi::DATA_LOCATION.load(Relaxed) as usize as *const [u32; hanzi::DATA_LEN];
-                (unsafe{*data})[offset]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(hanzi::DATA_LOCATION.load(Relaxed));
+                    data.add(offset).read_volatile()
+                }
             },
         };
         let w = (header << 8) >> 24;
@@ -94,42 +107,56 @@ impl GlyphData {
 
     /// Unpack the nth pixel data word following the header
     pub fn nth_word(self, n: usize) -> Result<u32, NoGlyphErr> {
+        use log::info;
+        let debug = false;
+        if debug { info!("BLITSTR: nth word: {:?}, n {}", self, n); }
+
         use core::sync::atomic::Ordering::Relaxed;
         let word = match self {
             GlyphData::Emoji(offset) => {
                 if emoji::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; emoji::DATA_LEN] = emoji::DATA_LOCATION.load(Relaxed) as usize as *const [u32; emoji::DATA_LEN];
-                (unsafe{*data})[offset + n]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(emoji::DATA_LOCATION.load(Relaxed));
+                    data.add(offset+n).read_volatile()
+                }
             },
             GlyphData::Bold(offset) => {
                 if bold::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; bold::DATA_LEN] = bold::DATA_LOCATION.load(Relaxed) as usize as *const [u32; bold::DATA_LEN];
-                (unsafe{*data})[offset + n]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(bold::DATA_LOCATION.load(Relaxed));
+                    data.add(offset+n).read_volatile()
+                }
             },
             GlyphData::Regular(offset) => {
                 if regular::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; regular::DATA_LEN] = regular::DATA_LOCATION.load(Relaxed) as usize as *const [u32; regular::DATA_LEN];
-                (unsafe{*data})[offset + n]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(regular::DATA_LOCATION.load(Relaxed));
+                    data.add(offset+n).read_volatile()
+                }
             },
             GlyphData::Small(offset) => {
                 if small::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; small::DATA_LEN] = small::DATA_LOCATION.load(Relaxed) as usize as *const [u32; small::DATA_LEN];
-                (unsafe{*data})[offset + n]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(small::DATA_LOCATION.load(Relaxed));
+                    data.add(offset+n).read_volatile()
+                }
             },
             GlyphData::Hanzi(offset) => {
                 if hanzi::DATA_LOCATION.load(Relaxed) == 0 {
                     return Err(NoGlyphErr)
                 }
-                let data: *const [u32; hanzi::DATA_LEN] = hanzi::DATA_LOCATION.load(Relaxed) as usize as *const [u32; hanzi::DATA_LEN];
-                (unsafe{*data})[offset + n]
+                unsafe {
+                    let data: *const u32 = core::mem::transmute(hanzi::DATA_LOCATION.load(Relaxed));
+                    data.add(offset+n).read_volatile()
+                }
             },
         };
         Ok(word)
@@ -166,6 +193,7 @@ impl GlyphData {
 }
 
 /// Holds header data for a font glyph
+#[derive(Debug)]
 pub struct GlyphHeader {
     pub w: u32,
     pub h: u32,

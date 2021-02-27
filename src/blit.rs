@@ -46,6 +46,10 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
      gs: GlyphSet,
      xor: bool) -> Result<u32, NoGlyphErr> ) {
 
+    use log::info;
+    let debug = false;
+    if debug { info!("BLITSTR: in paint_str for str {}", s); }
+
     // Look up the latin GlyphSet for the requested GlyphStyle (emoji & hanzi are always included)
     let gs_latin = match st {
         GlyphStyle::Bold => GlyphSet::Bold,
@@ -60,6 +64,7 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
         if cluster.len() < 1 {
             break; // All grapheme clusters have been consumed
         }
+        if debug { info!("BLITSTR: cluster iter {} len {}", cluster, cluster.len()); }
         if Some('\n') == cluster.chars().next() {
             // Handle whitespace, note that '\n' uses 1 byte
             newline(clip, c);
@@ -127,8 +132,8 @@ pub fn xor_char(
     xor: bool,
 ) -> Result<u32, NoGlyphErr> {
     use log::info;
-    let debug = true;
-    if debug { info!("BLITSTR: in xor_char for str {}", cluster); }
+    let debug = false;
+    if debug { info!("BLITSTR: in xor_char for str {} gs {:?}", cluster, gs); }
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
@@ -142,8 +147,9 @@ pub fn xor_char(
         GlyphSet::Hanzi => fonts::hanzi::get_blit_pattern_offset(cluster)?,
     };
     if debug { info!("BLITSTR: getting header on glyph_data {:?}", glyph_data); }
-    let gh = glyph_data.header()?;
-    if debug { info!("BLITSTR: after header"); }
+    let gh_maybe = glyph_data.header();
+    if debug { info!("BLITSTR: after header, got {:?}", gh_maybe); }
+    let gh = gh_maybe?;
     if gh.w > 32 {
         return Ok(0);
     }
