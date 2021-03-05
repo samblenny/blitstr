@@ -49,6 +49,8 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
     use log::info;
     let debug = false;
     if debug { info!("BLITSTR: in paint_str for str {}", s); }
+    if debug { info!("BLITSTR: clip {:?}", clip); }
+    if debug { info!("BLITSTR: cursor {:?}", c); }
 
     // Look up the latin GlyphSet for the requested GlyphStyle (emoji & hanzi are always included)
     let gs_latin = match st {
@@ -134,6 +136,7 @@ pub fn xor_char(
     use log::info;
     let debug = false;
     if debug { info!("BLITSTR: in xor_char for str {} gs {:?}", cluster, gs); }
+    if debug { info!("BLITSTR: clip {:?}", clip); }
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
         return Ok(0);
     }
@@ -179,6 +182,7 @@ pub fn xor_char(
     } else {
         clip.max.y - y0 // Clip bottom of glyph
     };
+    if debug { info!("BLITSTR: drawing with y0: {}, x0: {}, x1: {}", y0, x0, x1); }
     for y in 0..y_max {
         // Skip rows that are above the clip region
         if y0 + y < clip.min.y {
