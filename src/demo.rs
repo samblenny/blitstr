@@ -21,14 +21,14 @@ pub fn sample_text(fb: &mut FrBuf) {
     clear_region(fb, ClipRect::full_screen());
     let mut clip = ClipRect::padded_screen();
     let c = &mut Cursor::from_top_left_of(clip);
-    paint_str(fb, clip, c, GlyphStyle::Bold, note, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Regular, note, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Small, note, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Regular, sas1, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Regular, sas2, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Regular, sas3, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Regular, sas4, true, xor_char);
-    paint_str(fb, clip, c, GlyphStyle::Regular, wrap, true, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Bold, note, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, note, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Small, note, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, sas1, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, sas2, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, sas3, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, sas4, true, None, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, wrap, true, None, xor_char);
     // Demonstrate messing with the clip region and cursor:
     // 1. Convenience function to make a new cursor
     let c = &mut Cursor::new(c.pt.x as _, c.pt.y as _, c.line_height as _);
@@ -42,7 +42,7 @@ pub fn sample_text(fb: &mut FrBuf) {
     //    Note: fn def is `new(min_x: usize, min_y: usize, max_x: usize, max_y: usize)`
     let clip = ClipRect::new(clip.max.x as _, clip.min.y as _, clip.min.x as _, clip.max.y as _);
     // Blit the string
-    paint_str(fb, clip, c, GlyphStyle::Small, wrap, true, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Small, wrap, true, None, xor_char);
 }
 
 /// Short example to greet world + cat
@@ -58,8 +58,8 @@ pub fn short_greeting(fb: &mut FrBuf) {
     let cursor = &mut Cursor::from_top_left_of(clip);
 
     // Paint two lines of text within the clip rectangle, reusing the same cursor
-    paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, world!\n", true, xor_char);
-    paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, 😸!\n", true, xor_char);
+    paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, world!\n", true, None, xor_char);
+    paint_str(fb, clip, cursor, GlyphStyle::Regular, "Hello, 😸!\n", true, None, xor_char);
 }
 
 /// Poem
@@ -76,5 +76,5 @@ pub fn goose_poem(fb: &mut FrBuf) {
         "白毛浮绿水，\n",
         "红掌拨清波\n",
     );
-    paint_str(fb, clip, c, GlyphStyle::Regular, poem, true, xor_char);
+    paint_str(fb, clip, c, GlyphStyle::Regular, poem, true, None, xor_char);
 }

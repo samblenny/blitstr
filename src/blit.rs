@@ -37,8 +37,20 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
     }
 }
 
-/// XOR blit a string with specified style, clip rect, starting at cursor
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool,
+fn draw_ins(fb: &mut FrBuf, c: &Cursor) {
+    // draw an insertion pointer that's a couple pixels short either side of the line height
+    let y = (c.pt.y + 2) as usize;
+    let x = c.pt.x as usize;
+    let height = (c.pt.y + c.line_height - 2) as usize;
+    for row in y..height {
+        fb[((x + row * WORDS_PER_LINE * 32) / 32) as usize] &= !(1 << (x % 32));
+        // set the dirty bit on the line that contains the pixel
+        fb[row * WORDS_PER_LINE + (WORDS_PER_LINE - 1)] |= 0x1_0000;
+    }
+}
+
+/// XOR blit a string with specified style, clip rect, starting at cursor; draw an insertion point at the designed optional ins offset, given *in characters*
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool, ins: Option<u32>,
     paintchar_fn: fn(fb: &mut FrBuf,
      clip: ClipRect,
      c: &mut Cursor,
@@ -62,7 +74,9 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
     // the for loop. Since grapheme cluster length varies, s.len() is just an
     // upper bound that's only exact for pure ASCII strings.
     let mut cluster = s;
-    for _ in 0..s.len() {
+    let mut ins_drawn = false;
+    let mut start_c: Cursor = c.clone();
+    for i in 0..s.len() {
         if cluster.len() < 1 {
             break; // All grapheme clusters have been consumed
         }
@@ -88,6 +102,26 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
                     //break; // That was the last char, so stop now
                 }
             }
+        }
+        if !ins_drawn {
+            match ins {
+                Some(ins_pt) => {
+                    if (i+1) as u32 == ins_pt {
+                        draw_ins(fb, c);
+                        ins_drawn = true;
+                    }
+                },
+                _ => ()
+            }
+        }
+    }
+    // case of putting an insertion point at the end or beginning of of the string
+    if ins.is_some() && !ins_drawn {
+        if ins.unwrap() != 0 {
+            draw_ins(fb, c);
+        } else {
+            start_c.line_height = c.line_height;
+            draw_ins(fb, &start_c);
         }
     }
 }
