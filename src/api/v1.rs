@@ -31,7 +31,7 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc", true, xor_char);
+        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc", true, None, xor_char);
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x529828DB);
     }
 
