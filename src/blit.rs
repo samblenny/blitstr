@@ -166,7 +166,7 @@ pub fn draw_ellipsis(fb: &mut FrBuf, c: Cursor, baseline: u32, max_y: u32, clip:
     } else {
         clip.max.y - 4
     };
-    log::info!("BLITSTR: ellipsis clear {:?}, h {}, c {:?}, x0 {}", clear_rect, h, c, x0);
+    //log::info!("BLITSTR: ellipsis clear {:?}, h {}, c {:?}, x0 {}", clear_rect, h, c, x0);
     // draw the three dots
     for i in 0..ellipsis_width {
         if i == 1 || i == 2 || i == 4 || i == 5 || i == 7 || i == 8 {
