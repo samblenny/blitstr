@@ -50,13 +50,13 @@ fn draw_ins(fb: &mut FrBuf, c: &Cursor) {
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor; draw an insertion point at the designed optional ins offset, given *in characters*
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool, ins: Option<u32>,
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool, ins: Option<u32>, ellipsis: bool,
     paintchar_fn: fn(fb: &mut FrBuf,
      clip: ClipRect,
      c: &mut Cursor,
      cluster: &str,
      gs: GlyphSet,
-     xor: bool) -> Result<u32, NoGlyphErr> ) {
+     xor: bool, ellipsis: bool) -> Result<Option<u32>, NoGlyphErr> ) {
 
     use log::info;
     let debug = false;
@@ -85,15 +85,24 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
             // Handle whitespace, note that '\n' uses 1 byte
             newline(clip, c);
             cluster = &cluster[1..];
-        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, GlyphSet::Emoji, xor) {
-            cluster = &cluster[bytes_used as usize..];
-        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, gs_latin, xor) {
-            cluster = &cluster[bytes_used as usize..];
-        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, GlyphSet::Hanzi, xor) {
-            cluster = &cluster[bytes_used as usize..];
+        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, GlyphSet::Emoji, xor, ellipsis) {
+            match bytes_used {
+                Some(bu) => cluster = &cluster[bu as usize..],
+                None => break,
+            }
+        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, gs_latin, xor, ellipsis) {
+            match bytes_used {
+                Some(bu) => cluster = &cluster[bu as usize..],
+                None => break,
+            }
+        } else if let Ok(bytes_used) = paintchar_fn(fb, clip, c, cluster, GlyphSet::Hanzi, xor, ellipsis) {
+            match bytes_used {
+                Some(bu) => cluster = &cluster[bu as usize..],
+                None => break,
+            }
         } else {
             // Fallback: use replacement character
-            if let Ok(_) = paintchar_fn(fb, clip, c, &"\u{FFFD}", gs_latin, xor) {
+            if let Ok(_) = paintchar_fn(fb, clip, c, &"\u{FFFD}", gs_latin, xor, ellipsis) {
                 // Advance string slice position by consuming one UTF-8 character
                 if let Some((i, _)) = cluster.char_indices().nth(1) {
                     cluster = &cluster[i..];
@@ -136,6 +145,38 @@ fn newline(clip: ClipRect, c: &mut Cursor) {
     c.line_height = 0;
 }
 
+pub fn draw_ellipsis(fb: &mut FrBuf, c: Cursor, baseline: u32, max_y: u32, clip: ClipRect) {
+    // rub out a small amount of area of the last characters drawn, and then draw the ellipsis
+    let ellipsis_width = 10;
+    let x0 = if c.pt.x + ellipsis_width <= clip.max.x {
+        c.pt.x
+    } else {
+        clip.max.x - ellipsis_width
+    };
+    let y1 = if c.pt.y + max_y <= clip.max.y {
+        c.pt.y + max_y
+    } else {
+        clip.max.y
+    };
+    let clear_rect = ClipRect::new(x0, c.pt.y, x0 + ellipsis_width, y1);
+    clear_region(fb, clear_rect);
+    // now draw the ellipsis at x0, baseline
+    let h = if baseline <= max_y {
+        c.pt.y + baseline
+    } else {
+        clip.max.y - 4
+    };
+    log::info!("BLITSTR: ellipsis clear {:?}, h {}, c {:?}, x0 {}", clear_rect, h, c, x0);
+    // draw the three dots
+    for i in 0..ellipsis_width {
+        if i == 1 || i == 2 || i == 4 || i == 5 || i == 7 || i == 8 {
+            fb[((x0 + i + h * (WORDS_PER_LINE as u32) * 32) / 32) as usize] &= !(1 << ((x0 + i) % 32));
+            fb[((x0 + i + (h+1) * (WORDS_PER_LINE as u32) * 32) / 32) as usize] &= !(1 << ((x0 + i) % 32));
+        }
+    }
+    // no dirty bits set, it's assumed they were already set because previous character blittings
+}
+
 /// Blit a char with: XOR, align left:xr.0 top:yr.0, pad L:1px R:2px
 /// Return: width in pixels of character + padding that were blitted (0 if won't fit in clip region)
 ///
@@ -166,13 +207,14 @@ pub fn xor_char(
     cluster: &str,
     gs: GlyphSet,
     xor: bool,
-) -> Result<u32, NoGlyphErr> {
+    ellipsis: bool,
+) -> Result<Option<u32>, NoGlyphErr> {
     use log::info;
     let debug = false;
     if debug { info!("BLITSTR: in xor_char for str {} gs {:?}", cluster, gs); }
     if debug { info!("BLITSTR: clip {:?}", clip); }
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
-        return Ok(0);
+        return Ok(None);
     }
     // Look up glyph for grapheme cluster and unpack its header
     if debug { info!("BLITSTR: glyph lookup"); }
@@ -188,7 +230,7 @@ pub fn xor_char(
     if debug { info!("BLITSTR: after header, got {:?}", gh_maybe); }
     let gh = gh_maybe?;
     if gh.w > 32 {
-        return Ok(0);
+        return Ok(None);
     }
     // Don't clip if cursor is left of clip rect; instead, advance the cursor
     if c.pt.x < clip.min.x {
@@ -197,9 +239,27 @@ pub fn xor_char(
     // Add 1px pad to left
     let mut x0 = c.pt.x + 1;
     // Adjust for word wrapping
-    if x0 + gh.w + 2 >= clip.max.x {
-        newline(clip, c);
-        x0 = c.pt.x + 1;
+    if !ellipsis {
+        if x0 + gh.w + 2 >= clip.max.x {
+            newline(clip, c);
+            x0 = c.pt.x + 1;
+        }
+    } else {
+        // insert ellipsis if the wrap would go outside the clip rectangle
+        let c_bak = Cursor {
+            pt: crate::Pt::new(c.pt.x, c.pt.y),
+            line_height: c.line_height,
+        };
+        if x0 + gh.w + 2 >= clip.max.x {
+            newline(clip, c);
+            x0 = c.pt.x + 1;
+            // determine if any of the new glyphs on this line might fall outside the clip region
+            if (c.pt.y + gh.y_offset + fonts::small::MAX_HEIGHT as u32) > clip.max.y {
+                // clipping would happen
+                draw_ellipsis(fb, c_bak, 20, fonts::small::MAX_HEIGHT as u32, clip);
+                return Ok(None)
+            }
+        }
     }
     // Calculate word alignment for destination buffer
     let x1 = x0 + gh.w;
@@ -209,7 +269,7 @@ pub fn xor_char(
     // Blit it
     let y0 = c.pt.y + gh.y_offset;
     if y0 > clip.max.y {
-        return Ok(0); // Entire glyph is outside clip rect, so clip it
+        return Ok(None); // Entire glyph is outside clip rect, so clip it
     }
     let y_max = if (y0 + gh.h) <= clip.max.y {
         gh.h
@@ -269,7 +329,7 @@ pub fn xor_char(
     if font_line_height > c.line_height as usize {
         c.line_height = font_line_height as u32;
     }
-    return Ok(bytes_used as u32);
+    return Ok(Some(bytes_used as u32));
 }
 
 
@@ -280,9 +340,10 @@ pub fn simulate_char(
     cluster: &str,
     gs: GlyphSet,
     _xor: bool,
-) -> Result<u32, NoGlyphErr> {
+    _ellipsis: bool,
+) -> Result<Option<u32>, NoGlyphErr> {
     if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
-        return Ok(0);
+        return Ok(None);
     }
     // Look up glyph for grapheme cluster and unpack its header
     let (glyph_data, bytes_used) = match gs {
@@ -294,7 +355,7 @@ pub fn simulate_char(
     };
     let gh = glyph_data.header()?;
     if gh.w > 32 {
-        return Ok(0);
+        return Ok(None);
     }
     // Don't clip if cursor is left of clip rect; instead, advance the cursor
     if c.pt.x < clip.min.x {
@@ -302,7 +363,7 @@ pub fn simulate_char(
     }
     let y0 = c.pt.y + gh.y_offset;
     if y0 > clip.max.y {
-        return Ok(0); // Entire glyph is outside clip rect, so clip it
+        return Ok(None); // Entire glyph is outside clip rect, so clip it
     }
     let width_of_blitted_pixels = gh.w + 3;
     c.pt.x += width_of_blitted_pixels;
@@ -316,5 +377,5 @@ pub fn simulate_char(
     if font_line_height > c.line_height as usize {
         c.line_height = font_line_height as u32;
     }
-    return Ok(bytes_used as u32);
+    return Ok(Some(bytes_used as u32));
 }
