@@ -361,6 +361,11 @@ pub fn simulate_char(
     if c.pt.x < clip.min.x {
         c.pt.x = clip.min.x;
     }
+    // Add 1px pad to left
+    let x0 = c.pt.x + 1;
+    if x0 + gh.w + 2 >= clip.max.x {
+        newline(clip, c);
+    }
     let y0 = c.pt.y + gh.y_offset;
     if y0 > clip.max.y {
         return Ok(None); // Entire glyph is outside clip rect, so clip it
