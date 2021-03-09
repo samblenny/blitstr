@@ -6,13 +6,13 @@
 /// Point specifies a pixel coordinate
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, rkyv::Archive, rkyv::Unarchive)]
 pub struct Pt {
-    pub x: u32,
-    pub y: u32,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl Pt {
     /// Make a new point
-    pub fn new(x: u32, y: u32) -> Pt {
+    pub fn new(x: i32, y: i32) -> Pt {
         Pt { x, y }
     }
 }

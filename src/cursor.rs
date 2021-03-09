@@ -12,12 +12,12 @@ use crate::pt::Pt;
 #[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Unarchive)]
 pub struct Cursor {
     pub pt: Pt,
-    pub line_height: u32,
+    pub line_height: i32,
 }
 
 impl Cursor {
     // Make a new Cursor. When in doubt, set line_height = 0.
-    pub fn new(x: u32, y: u32, line_height: u32) -> Cursor {
+    pub fn new(x: i32, y: i32, line_height: i32) -> Cursor {
         Cursor {
             pt: Pt { x, y },
             line_height,

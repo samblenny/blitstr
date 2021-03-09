@@ -19,7 +19,7 @@ pub struct ClipRect {
 
 impl ClipRect {
     /// Initialize a rectangle using automatic min/max fixup for corner points
-    pub fn new(min_x: u32, min_y: u32, max_x: u32, max_y: u32) -> ClipRect {
+    pub fn new(min_x: i32, min_y: i32, max_x: i32, max_y: i32) -> ClipRect {
         // Make sure min_x <= max_x && min_y <= max_y
         let mut min = Pt { x: min_x, y: min_y };
         let mut max = Pt { x: max_x, y: max_y };
@@ -36,13 +36,13 @@ impl ClipRect {
 
     /// Make a rectangle of the full screen size (0,0)..(WIDTH,LINES)
     pub fn full_screen() -> ClipRect {
-        ClipRect::new(0, 0, WIDTH as u32, LINES as u32)
+        ClipRect::new(0, 0, WIDTH as i32, LINES as i32)
     }
 
     /// Make a rectangle of the screen size minus padding (6,6)..(WIDTH-6,LINES-6)
     pub fn padded_screen() -> ClipRect {
         let pad = 6;
-        ClipRect::new(pad, pad, WIDTH as u32 - pad, LINES as u32 - pad)
+        ClipRect::new(pad, pad, WIDTH as i32 - pad, LINES as i32 - pad)
     }
 }
 

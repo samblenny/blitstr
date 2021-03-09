@@ -12,9 +12,9 @@ use crate::glyphstyle::GlyphStyle;
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
 pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
-    if clip.max.y > LINES as u32
+    if clip.max.y > LINES as i32
         || clip.min.y >= clip.max.y
-        || clip.max.x > WIDTH as u32
+        || clip.max.x > WIDTH as i32
         || clip.min.x >= clip.max.x
     {
         return;
@@ -26,7 +26,7 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
     let px_in_dest_high_word = clip.max.x & 0x1f;
     // Blit it
     for y in clip.min.y..clip.max.y {
-        let base = y * WORDS_PER_LINE as u32;
+        let base = y * WORDS_PER_LINE as i32;
         fb[(base + dest_low_word) as usize] |= 0xffffffff << (32 - px_in_dest_low_word);
         for w in dest_low_word + 1..dest_high_word {
             fb[(base + w) as usize] = 0xffffffff;
@@ -50,13 +50,13 @@ fn draw_ins(fb: &mut FrBuf, c: &Cursor) {
 }
 
 /// XOR blit a string with specified style, clip rect, starting at cursor; draw an insertion point at the designed optional ins offset, given *in characters*
-pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool, ins: Option<u32>, ellipsis: bool,
+pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle, s: &str, xor: bool, ins: Option<i32>, ellipsis: bool,
     paintchar_fn: fn(fb: &mut FrBuf,
      clip: ClipRect,
      c: &mut Cursor,
      cluster: &str,
      gs: GlyphSet,
-     xor: bool, ellipsis: bool) -> Result<Option<u32>, NoGlyphErr> ) {
+     xor: bool, ellipsis: bool) -> Result<Option<i32>, NoGlyphErr> ) {
 
     use log::info;
     let debug = false;
@@ -115,7 +115,7 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
         if !ins_drawn {
             match ins {
                 Some(ins_pt) => {
-                    if (i+1) as u32 == ins_pt {
+                    if (i+1) as i32 == ins_pt {
                         draw_ins(fb, c);
                         ins_drawn = true;
                     }
@@ -138,14 +138,14 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, st: GlyphStyle,
 /// Advance the cursor to the start of a new line within the clip rect
 fn newline(clip: ClipRect, c: &mut Cursor) {
     c.pt.x = clip.min.x;
-    if c.line_height < fonts::small::MAX_HEIGHT as u32 {
-        c.line_height = fonts::small::MAX_HEIGHT as u32;
+    if c.line_height < fonts::small::MAX_HEIGHT as i32 {
+        c.line_height = fonts::small::MAX_HEIGHT as i32;
     }
     c.pt.y += c.line_height + 1;
     c.line_height = 0;
 }
 
-pub fn draw_ellipsis(fb: &mut FrBuf, c: Cursor, baseline: u32, max_y: u32, clip: ClipRect) {
+pub fn draw_ellipsis(fb: &mut FrBuf, c: Cursor, baseline: i32, max_y: i32, clip: ClipRect) {
     // rub out a small amount of area of the last characters drawn, and then draw the ellipsis
     let ellipsis_width = 10;
     let x0 = if c.pt.x + ellipsis_width <= clip.max.x {
@@ -170,8 +170,8 @@ pub fn draw_ellipsis(fb: &mut FrBuf, c: Cursor, baseline: u32, max_y: u32, clip:
     // draw the three dots
     for i in 0..ellipsis_width {
         if i == 1 || i == 2 || i == 4 || i == 5 || i == 7 || i == 8 {
-            fb[((x0 + i + h * (WORDS_PER_LINE as u32) * 32) / 32) as usize] &= !(1 << ((x0 + i) % 32));
-            fb[((x0 + i + (h+1) * (WORDS_PER_LINE as u32) * 32) / 32) as usize] &= !(1 << ((x0 + i) % 32));
+            fb[((x0 + i + h * (WORDS_PER_LINE as i32) * 32) / 32) as usize] &= !(1 << ((x0 + i) % 32));
+            fb[((x0 + i + (h+1) * (WORDS_PER_LINE as i32) * 32) / 32) as usize] &= !(1 << ((x0 + i) % 32));
         }
     }
     // no dirty bits set, it's assumed they were already set because previous character blittings
@@ -208,12 +208,12 @@ pub fn xor_char(
     gs: GlyphSet,
     xor: bool,
     ellipsis: bool,
-) -> Result<Option<u32>, NoGlyphErr> {
+) -> Result<Option<i32>, NoGlyphErr> {
     use log::info;
     let debug = false;
     if debug { info!("BLITSTR: in xor_char for str {} gs {:?}", cluster, gs); }
     if debug { info!("BLITSTR: clip {:?}", clip); }
-    if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
+    if clip.max.y > LINES as i32 || clip.max.x > WIDTH as i32 || clip.min.x >= clip.max.x {
         return Ok(None);
     }
     // Look up glyph for grapheme cluster and unpack its header
@@ -240,7 +240,7 @@ pub fn xor_char(
     let mut x0 = c.pt.x + 1;
     // Adjust for word wrapping
     if !ellipsis {
-        if x0 + gh.w + 2 >= clip.max.x {
+        if x0 + gh.w as i32 + 2 >= clip.max.x {
             newline(clip, c);
             x0 = c.pt.x + 1;
         }
@@ -250,29 +250,29 @@ pub fn xor_char(
             pt: crate::Pt::new(c.pt.x, c.pt.y),
             line_height: c.line_height,
         };
-        if x0 + gh.w + 2 >= clip.max.x {
+        if x0 + gh.w as i32 + 2 >= clip.max.x {
             newline(clip, c);
             x0 = c.pt.x + 1;
             // determine if any of the new glyphs on this line might fall outside the clip region
-            if (c.pt.y + gh.y_offset + fonts::small::MAX_HEIGHT as u32) > clip.max.y {
+            if (c.pt.y + gh.y_offset as i32 + fonts::small::MAX_HEIGHT as i32) > clip.max.y {
                 // clipping would happen
-                draw_ellipsis(fb, c_bak, 20, fonts::small::MAX_HEIGHT as u32, clip);
+                draw_ellipsis(fb, c_bak, 20, fonts::small::MAX_HEIGHT as i32, clip);
                 return Ok(None)
             }
         }
     }
     // Calculate word alignment for destination buffer
-    let x1 = x0 + gh.w;
+    let x1 = x0 + gh.w as i32;
     let dest_low_word = x0 >> 5;
     let dest_high_word = x1 >> 5;
     let px_in_dest_low_word = 32 - (x0 & 0x1f);
     // Blit it
-    let y0 = c.pt.y + gh.y_offset;
+    let y0 = c.pt.y + gh.y_offset as i32;
     if y0 > clip.max.y {
         return Ok(None); // Entire glyph is outside clip rect, so clip it
     }
-    let y_max = if (y0 + gh.h) <= clip.max.y {
-        gh.h
+    let y_max = if (y0 + gh.h as i32) <= clip.max.y {
+        gh.h as i32
     } else {
         clip.max.y - y0 // Clip bottom of glyph
     };
@@ -286,39 +286,39 @@ pub fn xor_char(
         // px_in_low_word can include some or all of the pixels for this row of
         // the pattern. It may also include pixels for the next row, or, in the
         // case of the last row, it may include padding bits.
-        let px_offset = y * gh.w;
+        let px_offset = y * gh.w as i32;
         let low_word = 1 + (px_offset >> 5);
         let px_in_low_word = 32 - (px_offset & 0x1f);
         let mut pattern = glyph_data.nth_word(low_word as usize)?;
         // Mask and align pixels from low word of glyph data array
         pattern <<= 32 - px_in_low_word;
         pattern >>= 32 - gh.w;
-        if gh.w > px_in_low_word {
+        if gh.w as i32 > px_in_low_word as i32 {
             // When pixels for this row span two words in the glyph data array,
             // get pixels from the high word too
-            let px_in_high_word = gh.w - px_in_low_word;
+            let px_in_high_word = gh.w as i32 - px_in_low_word as i32;
             let mut pattern_h = glyph_data.nth_word(low_word as usize + 1)?;
             pattern_h >>= 32 - px_in_high_word;
             pattern |= pattern_h;
         }
         // XOR glyph pixels onto destination buffer
-        let base = (y0 + y) * WORDS_PER_LINE as u32;
+        let base = (y0 + y) * WORDS_PER_LINE as i32;
         if xor {
             fb[(base + dest_low_word) as usize] ^= pattern << (32 - px_in_dest_low_word);
         } else {
             fb[(base + dest_low_word) as usize] &= 0xffff_ffff ^ (pattern << (32 - px_in_dest_low_word));
         }
-        if px_in_dest_low_word < gh.w {
+        if px_in_dest_low_word < gh.w as i32 {
             if xor {
                 fb[(base + dest_high_word) as usize] ^= pattern >> px_in_dest_low_word;
             } else {
                 fb[(base + dest_high_word) as usize] &= 0xffff_ffff ^ (pattern >> px_in_dest_low_word);
             }
         }
-        fb[(base + WORDS_PER_LINE as u32 - 1) as usize] |= 0x1_0000; // set the dirty bit on the line
+        fb[(base + WORDS_PER_LINE as i32 - 1) as usize] |= 0x1_0000; // set the dirty bit on the line
     }
     let width_of_blitted_pixels = gh.w + 3;
-    c.pt.x += width_of_blitted_pixels;
+    c.pt.x += width_of_blitted_pixels as i32;
     let font_line_height = match gs {
         GlyphSet::Bold => fonts::bold::MAX_HEIGHT,
         GlyphSet::Regular => fonts::regular::MAX_HEIGHT,
@@ -327,9 +327,9 @@ pub fn xor_char(
         GlyphSet::Hanzi => fonts::hanzi::MAX_HEIGHT,
     } as usize;
     if font_line_height > c.line_height as usize {
-        c.line_height = font_line_height as u32;
+        c.line_height = font_line_height as i32;
     }
-    return Ok(Some(bytes_used as u32));
+    return Ok(Some(bytes_used as i32));
 }
 
 
@@ -341,8 +341,8 @@ pub fn simulate_char(
     gs: GlyphSet,
     _xor: bool,
     _ellipsis: bool,
-) -> Result<Option<u32>, NoGlyphErr> {
-    if clip.max.y > LINES as u32 || clip.max.x > WIDTH as u32 || clip.min.x >= clip.max.x {
+) -> Result<Option<i32>, NoGlyphErr> {
+    if clip.max.y > LINES as i32 || clip.max.x > WIDTH as i32 || clip.min.x >= clip.max.x {
         return Ok(None);
     }
     // Look up glyph for grapheme cluster and unpack its header
@@ -363,15 +363,15 @@ pub fn simulate_char(
     }
     // Add 1px pad to left
     let x0 = c.pt.x + 1;
-    if x0 + gh.w + 2 >= clip.max.x {
+    if x0 + gh.w as i32 + 2 >= clip.max.x {
         newline(clip, c);
     }
-    let y0 = c.pt.y + gh.y_offset;
+    let y0 = c.pt.y + gh.y_offset as i32;
     if y0 > clip.max.y {
         return Ok(None); // Entire glyph is outside clip rect, so clip it
     }
     let width_of_blitted_pixels = gh.w + 3;
-    c.pt.x += width_of_blitted_pixels;
+    c.pt.x += width_of_blitted_pixels as i32;
     let font_line_height = match gs {
         GlyphSet::Bold => fonts::bold::MAX_HEIGHT,
         GlyphSet::Regular => fonts::regular::MAX_HEIGHT,
@@ -380,7 +380,7 @@ pub fn simulate_char(
         GlyphSet::Hanzi => fonts::hanzi::MAX_HEIGHT,
     } as usize;
     if font_line_height > c.line_height as usize {
-        c.line_height = font_line_height as u32;
+        c.line_height = font_line_height as i32;
     }
-    return Ok(Some(bytes_used as u32));
+    return Ok(Some(bytes_used as i32));
 }
