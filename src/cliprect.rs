@@ -11,7 +11,7 @@ use crate::pt::Pt;
 /// Coordinate System Notes:
 /// - (0,0) is top left
 /// - Increasing Y moves downward on the screen, increasing X moves right
-#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Unarchive)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Serialize)]
 pub struct ClipRect {
     pub min: Pt,
     pub max: Pt,

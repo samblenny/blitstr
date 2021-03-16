@@ -9,7 +9,7 @@
 use crate::fonts;
 
 /// Style options for Latin script fonts
-#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Unarchive)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Serialize)]
 pub enum GlyphStyle {
     Small = 0,
     Regular = 1,

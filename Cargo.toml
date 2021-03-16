@@ -6,8 +6,12 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-rkyv = { version = "0.3.1", default_features = false }
 log = "0.4"
+
+[dependencies.rkyv]
+version = "0.4.1"
+default-features = false
+features = ["const_generics"]
 
 [lib]
 doctest = false

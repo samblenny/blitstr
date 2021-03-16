@@ -9,7 +9,7 @@ use crate::pt::Pt;
 /// Cursor specifies a drawing position along a line of text. Lines of text can
 /// be different heights. Line_height is for keeping track of the tallest
 /// character that has been drawn so far on the current line.
-#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Unarchive)]
+#[derive(Copy, Clone, Debug, PartialEq, rkyv::Archive, rkyv::Serialize)]
 pub struct Cursor {
     pub pt: Pt,
     pub line_height: i32,
