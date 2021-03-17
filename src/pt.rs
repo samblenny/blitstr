@@ -4,7 +4,7 @@
 #![forbid(unsafe_code)]
 
 /// Point specifies a pixel coordinate
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, rkyv::Archive, rkyv::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)]
 pub struct Pt {
     pub x: i32,
     pub y: i32,
