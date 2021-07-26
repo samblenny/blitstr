@@ -43,7 +43,7 @@ fn draw_ins(fb: &mut FrBuf, c: &Cursor) {
     let x = c.pt.x as usize;
     let height = (c.pt.y + c.line_height - 2) as usize;
     for row in y..height {
-        fb[((x + row * WORDS_PER_LINE * 32) / 32) as usize] &= !(1 << (x % 32));
+        fb[((x + row * WORDS_PER_LINE * 32) / 32) as usize] ^= (1 << (x % 32));
         // set the dirty bit on the line that contains the pixel
         fb[row * WORDS_PER_LINE + (WORDS_PER_LINE - 1)] |= 0x1_0000;
     }
