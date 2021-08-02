@@ -16,7 +16,7 @@ pub use crate::framebuffer::{new_fr_buf, FrBuf, FRAME_BUF_SIZE, LINES, WIDTH, WO
 pub use crate::glyphstyle::{glyph_to_height_hint, GlyphStyle};
 pub use crate::pt::Pt;
 
-#[cfg(target_os = "none")]
+#[cfg(any(target_os = "none", target_os = "xous"))]
 pub use crate::fonts::{map_font, GlyphData};
 
 /// These tests aim to cover all names exported in the v1 api

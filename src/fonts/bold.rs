@@ -713,11 +713,11 @@ const OFFSET_SPECIALS: [usize; 1] = [
     1488, // "�"
 ];
 
-#[cfg(target_os = "none")]
+#[cfg(any(target_os = "none", target_os = "xous"))]
 pub(crate) static DATA_LOCATION: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
 pub(crate) const DATA_LEN: usize = 1501;
 
-#[cfg(not(target_os = "none"))]
+#[cfg(not(any(target_os = "none", target_os = "xous")))]
 /// Packed glyph pattern data.
 /// Record format:
 ///  [offset+0]: ((w as u8) << 16) | ((h as u8) << 8) | (yOffset as u8)

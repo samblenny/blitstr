@@ -11,7 +11,7 @@ pub mod small;
 use super::m3hash;
 use core::fmt;
 
-#[cfg(target_os = "none")]
+#[cfg(any(target_os = "none", target_os = "xous"))]
 pub fn map_font(font_map: GlyphData) {
     use core::sync::atomic::Ordering::Relaxed;
     use log::info;
@@ -39,7 +39,7 @@ pub enum GlyphData {
     Small(usize),
     Hanzi(usize),
 }
-#[cfg(target_os = "none")]
+#[cfg(any(target_os = "none", target_os = "xous"))]
 impl GlyphData {
     /// Unpack glyph header of format: (w:u8)<<16 | (h:u8)<<8 | yOffset:u8
     pub fn header(self) -> Result<GlyphHeader, NoGlyphErr> {
@@ -163,7 +163,7 @@ impl GlyphData {
     }
 }
 
-#[cfg(not(target_os = "none"))]
+#[cfg(not(any(target_os = "none", target_os = "xous")))]
 impl GlyphData {
     /// Unpack glyph header of format: (w:u8)<<16 | (h:u8)<<8 | yOffset:u8
     pub fn header(self) -> Result<GlyphHeader, NoGlyphErr> {
