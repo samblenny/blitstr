@@ -41,7 +41,12 @@ fn draw_ins(fb: &mut FrBuf, c: &Cursor) {
     // draw an insertion pointer that's a couple pixels short either side of the line height
     let y = (c.pt.y + 2) as usize;
     let x = c.pt.x as usize;
-    let height = (c.pt.y + c.line_height - 2) as usize;
+    let mut height = (c.pt.y + c.line_height - 2) as usize;
+    let fb_rows = fb.len() / WORDS_PER_LINE;
+    if height >= fb_rows {
+        // Truncate height to avoid attempting to draw beyond last line of framebuffer
+        height = fb_rows - 1;
+    }
     for row in y..height {
         fb[((x + row * WORDS_PER_LINE * 32) / 32) as usize] ^= (1 << (x % 32));
         // set the dirty bit on the line that contains the pixel
